@@ -8,6 +8,7 @@ Note that the first release from this repository starts at v2.0.0, reflecting th
 
 ### General
 - [ ] All code has been refactored and commented to reduce coupling, reduce redundancy, and improve cohesion. This should improve maintainability and readability.
+- [ ] Python code has been updated to use Python 3.9 features.
 
 ### Changes in node and edge types
 - [ ] A new node type, `Phenotype`, has been added to NeDRexDB.
