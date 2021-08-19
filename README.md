@@ -9,6 +9,7 @@ Note that the first release from this repository starts at v2.0.0, reflecting th
 ### General
 - [ ] All code has been refactored and commented to reduce coupling, reduce redundancy, and improve cohesion. This should improve maintainability and readability.
 - [ ] Python code has been updated to use Python 3.9 features.
+- [ ] Tests have been added to ensure database quality.
 
 ### Changes in node and edge types
 - [ ] A new node type, `Phenotype`, has been added to NeDRexDB.
@@ -27,6 +28,7 @@ Note that the first release from this repository starts at v2.0.0, reflecting th
 
 ### Changes in existing parsers and integrations
 - [ ] MONDO integration now includes a check for obsolete disorders and no longer include these nodes.
+- [ ] Display names on `Protein` nodes are now the value displayed in the 'Protein' field on the UniProt website (e.g., ["Cystic fibrosis transmembrane conductance regulator"](https://www.uniprot.org/uniprot/P13569))
 - [ ] Drug Central integration now works on the SQL dump download (rather than requiring a seperate export to CSV outside of the NeDRexDB code).
 - [ ] All integrations for edges now include a check to ensure that both nodes involved (source/target or memberOne/memberTwo, as appropriate) exist in NeDRexDB.
 
