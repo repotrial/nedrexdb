@@ -7,6 +7,7 @@ from typing import Any as _Any, Optional as _Optional
 import toml as _toml  # type: ignore
 
 from nedrexdb.exceptions import ConfigError as _ConfigError
+from nedrexdb.logger import logger
 
 
 @_dataclass
@@ -47,4 +48,5 @@ config = _Config()
 
 def parse_config(infile):
     global config
+    logger.info("Parsing config file: %s" % infile)
     config.from_file(infile)
