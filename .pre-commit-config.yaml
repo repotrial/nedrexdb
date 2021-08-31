@@ -24,7 +24,7 @@ repos:
     rev: "5.9.3"
     hooks:
       - id: isort
-        args: ["--profile", "black"]
+        args: ["--profile", "black", --line-length=120]
 
   - repo: local
     hooks:
