@@ -20,12 +20,6 @@ repos:
     hooks:
       - id: mypy
 
-  - repo: https://github.com/pycqa/isort
-    rev: "5.9.3"
-    hooks:
-      - id: isort
-        args: ["--profile", "black", --line-length=120]
-
   - repo: local
     hooks:
       - id: pytest
