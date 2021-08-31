@@ -12,3 +12,7 @@ class ConfigError(NeDRexError):
 
 class MongoDBError(NeDRexError):
     pass
+
+
+class ProcessError(NeDRexError):
+    pass
