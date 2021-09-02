@@ -13,6 +13,7 @@ more-itertools = "^8.8.0"
 loguru = "^0.5.3"
 requests = "^2.26.0"
 beautifulsoup4 = "^4.9.3"
+biopython = "^1.79"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

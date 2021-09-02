@@ -1,22 +1,53 @@
-from mongoengine import Document as _Document
-from mongoengine import IntField as _IntField
-from mongoengine import ListField as _ListField
-from mongoengine import StringField as _StringField
+import datetime as _datetime
+
+from pydantic import BaseModel as _BaseModel, Field as _Field, StrictStr as _StrictStr
+from pymongo import UpdateOne as _UpdateOne
 
 
-class Protein(_Document):
-    meta = {"indexes": ["primaryDomainId", "domainIds", "taxid"]}
+class ProteinBase:
+    node_type: str = "Protein"
+    collection_name: str = "protein"
 
-    primaryDomainId = _StringField(unique=True)
-    domainIds = _ListField(_StringField(), default=[])
+    @classmethod
+    def set_indexes(cls, db):
+        db[cls.collection_name].create_index("primaryDomainId", unique=True)
+        db[cls.collection_name].create_index("domainIds")
+        db[cls.collection_name].create_index("taxid")
 
-    # TODO: Review which fields should have a default empty value / be nullable
-    displayName = _StringField(default="")
-    synonyms = _ListField(_StringField(), default=[])
-    comments = _StringField(default="")
-    geneName = _StringField(default="")
 
-    taxid = _IntField(default=-1)
-    sequence = _StringField(default="")
+class Protein(_BaseModel, ProteinBase):
+    class Config:
+        validate_assignment = True
 
-    type = _StringField(default="Protein")
+    primaryDomainId: _StrictStr = ""
+    domainIds: list[str] = _Field(default_factory=list)
+
+    displayName: _StrictStr = ""
+    synonyms: list[str] = _Field(default_factory=list)
+    comments: _StrictStr = ""
+    geneName: _StrictStr = ""
+
+    taxid: int = -1
+    sequence: _StrictStr = ""
+
+    def generate_update(self):
+        tnow = _datetime.datetime.utcnow()
+
+        query = {"primaryDomainId": self.primaryDomainId}
+        update = {
+            "$addToSet": {
+                "domainIds": {"$each": self.domainIds},
+                "synonyms": {"$each": self.synonyms},
+            },
+            "$set": {
+                "displayName": self.displayName,
+                "comments": self.comments,
+                "geneName": self.geneName,
+                "taxid": self.taxid,
+                "sequence": self.sequence,
+                "updated": tnow,
+            },
+            "$setOnInsert": {"created": tnow},
+        }
+
+        return _UpdateOne(query, update, upsert=True)

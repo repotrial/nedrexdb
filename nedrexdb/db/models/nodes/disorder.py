@@ -7,7 +7,7 @@ from pymongo import UpdateOne as _UpdateOne
 
 class DisorderBase:
     node_type: str = "Disorder"
-    collection_name = "disorder"
+    collection_name: str = "disorder"
 
     @classmethod
     def set_indexes(cls, db):
