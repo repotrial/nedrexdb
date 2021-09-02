@@ -1,19 +1,23 @@
 [db]
 mongo_image = "mongo:5.0.1"
+mongo_express_image = "mongo-express:0.54.0"
 mongo_db = "nedrex"
 # root_directory = ""
 volume_root = "nedrex"
 
 [db.dev]
-url = "localhost"
-port = 27018
+mongo_port = 27018
+mongo_express_port = 8082
+network = "nedrex_dev"
 container_name = "nedrex_dev"
+express_container_name = "nedrex_dev_express"
 
 [db.live]
-url = "localhost"
-port = 27017
+mongo_port = 27017
+mongo_express_port = 8081
+network = "nedrex_live"
 container_name = "nedrex_live"
-
+express_container_name = "nedrex_live_express"
 
 [sources]
 # directory = ""
