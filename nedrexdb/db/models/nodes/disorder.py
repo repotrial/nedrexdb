@@ -1,16 +1,45 @@
-from mongoengine import Document as _Document
-from mongoengine import ListField as _ListField
-from mongoengine import StringField as _StringField
+from typing import List as _List
+
+from pydantic import BaseModel as _BaseModel, Field as _Field, StrictStr as _StrictStr
+from pymongo import UpdateOne as _UpdateOne
 
 
-class Disorder(_Document):
-    meta = {"indexes": ["primaryDomainId", "domainIds"]}
-    primaryDomainId = _StringField(required=True)
-    domainIds = _ListField(_StringField(), default=[])
+class DisorderBase:
+    node_type: str = "Disorder"
+    collection_name = "disorder"
 
-    displayName = _StringField()
-    synonyms = _ListField(_StringField(), default=[])
-    icd10 = _ListField(_StringField(), default=[])
+    @classmethod
+    def set_indexes(cls, db):
+        db[cls.collection_name].create_index("primaryDomainId")
+        db[cls.collection_name].create_index("domainIds")
 
-    description = _StringField(default="")
-    type = _StringField(default="Disorder")
+
+class Disorder(_BaseModel, DisorderBase):
+    class Config:
+        validate_assignment = True
+
+    primaryDomainId: _StrictStr = ""
+    domainIds: _List[str] = _Field(default_factory=list)
+
+    displayName: _StrictStr = ""
+    synonyms: _List[str] = _Field(default_factory=list)
+    icd10: _List[str] = _Field(default_factory=list)
+
+    description: _StrictStr = ""
+
+    def generate_update(self):
+        query = {"primaryDomainId": self.primaryDomainId}
+        update = {
+            "$addToSet": {
+                "domainIds": {"$each": self.domainIds},
+                "synonyms": {"$each": self.synonyms},
+                "icd10": {"$each": self.icd10},
+            },
+            "$set": {
+                "displayName": self.displayName,
+                "description": self.description,
+                "type": self.node_type,
+            },
+        }
+
+        return _UpdateOne(query, update, upsert=True)

@@ -1,16 +1,30 @@
-from mongoengine import connect as _connect, disconnect as _disconnect
+from dataclasses import dataclass as _dataclass
+
+from pymongo import MongoClient as _MongoClient
 
 from nedrexdb import config as _config
+from nedrexdb.db.models.nodes import disorder as _disorder
 
 
-def connect(version):
-    if version not in ("live", "dev"):
-        raise ValueError(f"version given ({version!r}) should be 'live' or 'dev")
+@_dataclass
+class MongoInstance:
+    CLIENT = None
+    DB = None
 
-    port = _config[f"db.{version}.port"]
-    host = _config[f"db.{version}.url"]
-    dbname = _config[f"db.mongo_db"]
+    @classmethod
+    def connect(cls, version):
+        if version not in ("live", "dev"):
+            raise ValueError(f"version given ({version!r}) should be 'live' or 'dev")
 
-    # NOTE: This doesn't seem to complain if a connection with the alias already exists.
-    _disconnect(alias="nedrexdb")
-    _connect(db=dbname, alias="nedrexdb", host=host, port=port)
+        port = _config[f"db.{version}.mongo_port"]
+        host = "localhost"
+        dbname = _config["db.mongo_db"]
+
+        cls.CLIENT = _MongoClient(host=host, port=port)
+        cls.DB = cls.CLIENT[dbname]
+
+    @classmethod
+    def set_indexes(cls):
+        if not cls.DB:
+            raise ValueError("run nedrexdb.db.connect() first to connect to MongoDB")
+        _disorder.Disorder.set_indexes(cls.DB)

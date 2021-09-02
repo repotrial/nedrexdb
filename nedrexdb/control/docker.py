@@ -94,7 +94,7 @@ class _NeDRexBaseInstance(_NeDRexInstance):
         if use_existing_volume:
             volumes = get_nedrex_volumes()
             if not volumes:
-                raise ValueError(f"use_existing_volume set to True but no volume already exists")
+                raise ValueError("use_existing_volume set to True but no volume already exists")
             volume = volumes[0].name
         else:
             volume = generate_new_volume()

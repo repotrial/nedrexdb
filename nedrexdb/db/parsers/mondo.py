@@ -1,6 +1,8 @@
 import json as _json
-from pprint import pprint
 
+from more_itertools import chunked as _chunked
+
+from nedrexdb.db import MongoInstance
 from nedrexdb.db.parsers import _get_file_location_factory
 from nedrexdb.db.models.nodes.disorder import Disorder
 
@@ -51,10 +53,21 @@ class MondoRecord:
                     domain_id = val.replace(k, v)
                     domain_ids.append(domain_id)
 
-        return domain_id
+        return domain_ids
 
     def get_display_name(self) -> str:
         return self._record["lbl"]
+
+    def get_icd10_codes(self) -> list[str]:
+        icd10_codes: list[str] = []
+
+        try:
+            xrefs = self._record["meta"]["xrefs"]
+        except KeyError:
+            return icd10_codes
+
+        icd10_codes += [xref["val"].replace("ICD10:", "") for xref in xrefs if xref["val"].startswith("ICD10:")]
+        return icd10_codes
 
     def get_synonyms(self) -> list[str]:
         synonyms: list[str] = []
@@ -83,6 +96,7 @@ class MondoRecord:
         d.description = self.get_description()
         d.displayName = self.get_display_name()
         d.synonyms = self.get_synonyms()
+        d.icd10 = self.get_icd10_codes()
 
         return d
 
@@ -110,5 +124,6 @@ def parse_mondo_json():
     nodes = filter(_is_mondo_node, nodes)
     nodes = filter(lambda i: not _is_deprecated(i), nodes)
 
-    for node in nodes:
-        pprint(node)
+    mondo_records = (MondoRecord(node).parse().generate_update() for node in nodes)
+    for chunk in _chunked(mondo_records, 1_000):
+        MongoInstance.DB[Disorder.collection_name].bulk_write(chunk)
