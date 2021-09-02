@@ -114,6 +114,7 @@ def _is_deprecated(node) -> bool:
 
 
 def _parse_edges(edges):
+    mondo_nodes = {node["primaryDomainId"] for node in Disorder.find(MongoInstance.DB)}
     prefix = "http://purl.obolibrary.org/obo/MONDO_"
     for edge in edges:
         if not edge["sub"].startswith(prefix):
@@ -127,6 +128,11 @@ def _parse_edges(edges):
         diad = DisorderIsSubtypeOfDisorder()
         diad.sourceDomainId = edge["sub"].replace(prefix, "mondo.")
         diad.targetDomainId = edge["obj"].replace(prefix, "mondo.")
+
+        if diad.sourceDomainId not in mondo_nodes:
+            continue
+        if diad.targetDomainId not in mondo_nodes:
+            continue
 
         yield diad.generate_update()
 

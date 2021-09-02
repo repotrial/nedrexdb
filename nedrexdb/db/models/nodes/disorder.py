@@ -11,8 +11,20 @@ class DisorderBase:
 
     @classmethod
     def set_indexes(cls, db):
-        db[cls.collection_name].create_index("primaryDomainId")
+        db[cls.collection_name].create_index("primaryDomainId", unique=True)
         db[cls.collection_name].create_index("domainIds")
+
+    @classmethod
+    def find(cls, db, query=None):
+        if query is None:
+            query = {}
+        return db[cls.collection_name].find(query)
+
+    @classmethod
+    def find_one(cls, db, query=None):
+        if query is None:
+            query = {}
+        return db[cls.collection_name].find_one(query)
 
 
 class Disorder(_BaseModel, DisorderBase):

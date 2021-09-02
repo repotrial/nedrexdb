@@ -12,7 +12,7 @@ class DisorderIsSubtypeOfDisorderBase:
     def set_indexes(cls, db):
         db[cls.collection_name].create_index("sourceDomainId")
         db[cls.collection_name].create_index("targetDomainId")
-        db[cls.collection_name].create_index([("sourceDomainId", 1), ("targetDomainId", 1)])
+        db[cls.collection_name].create_index([("sourceDomainId", 1), ("targetDomainId", 1)], unique=True)
 
 
 class DisorderIsSubtypeOfDisorder(_BaseModel, DisorderIsSubtypeOfDisorderBase):
