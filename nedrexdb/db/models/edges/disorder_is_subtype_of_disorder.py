@@ -3,8 +3,10 @@ import datetime as _datetime
 from pydantic import BaseModel as _BaseModel, StrictStr as _StrictStr
 from pymongo import UpdateOne as _UpdateOne
 
+from nedrexdb.db import models
 
-class DisorderIsSubtypeOfDisorderBase:
+
+class DisorderIsSubtypeOfDisorderBase(models.MongoMixin):
     edge_type: str = "DisorderIsSubtypeOfDisorder"
     collection_name: str = "disorder_is_subtype_of_disorder"
 
@@ -29,6 +31,6 @@ class DisorderIsSubtypeOfDisorder(_BaseModel, DisorderIsSubtypeOfDisorderBase):
             "sourceDomainId": self.sourceDomainId,
             "targetDomainId": self.targetDomainId,
         }
-        update = {"$setOnInsert": {"created": tnow}, "$set": {"updated": tnow}}
+        update = {"$setOnInsert": {"created": tnow}, "$set": {"updated": tnow, "type": self.edge_type}}
 
         return _UpdateOne(query, update, upsert=True)

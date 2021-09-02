@@ -1,22 +1,57 @@
-from mongoengine import Document as _Document
-from mongoengine import ListField as _ListField
-from mongoengine import StringField as _StringField
+import datetime as _datetime
+
+from pydantic import BaseModel as _BaseModel, Field as _Field, StrictStr as _StrictStr
+from pymongo import UpdateOne as _UpdateOne
+
+from nedrexdb.db import models
 
 
-class Gene(_Document):
-    meta = {"indexes": ["primaryDomainId", "domainIds", "approvedSymbol", "symbols"]}
+class GeneBase(models.MongoMixin):
+    node_type: str = "Gene"
+    collection_name: str = "gene"
 
-    primaryDomainId = _StringField(unique=True)
-    domainIds = _ListField(_StringField(), default=[])
+    @classmethod
+    def set_indexes(cls, db):
+        db[cls.collection_name].create_index("primaryDomainId", unique=True)
+        db[cls.collection_name].create_index("domainId")
+        db[cls.collection_name].create_index("approvedSymbol")
+        db[cls.collection_name].create_index("symbols")
 
-    displayName = _StringField()
-    synonyms = _ListField(_StringField(), default=[])
-    approvedSymbol = _StringField()
-    symbols = _ListField(_StringField(), default=[])
-    description = _StringField()
 
-    chromosome = _StringField()
-    mapLocation = _StringField()
-    geneType = _StringField(default=None)
+class Gene(_BaseModel, GeneBase):
+    primaryDomainId: _StrictStr = ""
+    domainIds: list[str] = _Field(default_factory=list)
 
-    type = _StringField(default="Gene")
+    displayName: _StrictStr = ""
+    synonyms: list[str] = _Field(default_factory=list)
+    approvedSymbol: _StrictStr = ""
+    symbols: list[str] = _Field(default_factory=list)
+    description: _StrictStr = ""
+
+    chromosome: _StrictStr = ""
+    mapLocation: _StrictStr = ""
+    geneType: _StrictStr = ""
+
+    def generate_update(self):
+        tnow = _datetime.datetime.utcnow()
+
+        query = {"primaryDomainId": self.primaryDomainId}
+        update = {
+            "$addToSet": {
+                "domainIds": {"$each": self.domainIds},
+                "synonyms": {"$each": self.synonyms},
+                "symbols": {"$each": self.symbols},
+            },
+            "$set": {
+                "displayName": self.displayName,
+                "approvedSymbol": self.approvedSymbol,
+                "description": self.description,
+                "chromosome": self.chromosome,
+                "mapLocation": self.mapLocation,
+                "geneType": self.geneType,
+                "updated": tnow,
+            },
+            "$setOnInsert": {"created": tnow},
+        }
+
+        return _UpdateOne(query, update, upsert=True)

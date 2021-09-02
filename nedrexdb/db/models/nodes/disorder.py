@@ -4,8 +4,10 @@ from typing import List as _List
 from pydantic import BaseModel as _BaseModel, Field as _Field, StrictStr as _StrictStr
 from pymongo import UpdateOne as _UpdateOne
 
+from nedrexdb.db import models
 
-class DisorderBase:
+
+class DisorderBase(models.MongoMixin):
     node_type: str = "Disorder"
     collection_name: str = "disorder"
 
@@ -13,18 +15,6 @@ class DisorderBase:
     def set_indexes(cls, db):
         db[cls.collection_name].create_index("primaryDomainId", unique=True)
         db[cls.collection_name].create_index("domainIds")
-
-    @classmethod
-    def find(cls, db, query=None):
-        if query is None:
-            query = {}
-        return db[cls.collection_name].find(query)
-
-    @classmethod
-    def find_one(cls, db, query=None):
-        if query is None:
-            query = {}
-        return db[cls.collection_name].find_one(query)
 
 
 class Disorder(_BaseModel, DisorderBase):

@@ -3,8 +3,10 @@ import datetime as _datetime
 from pydantic import BaseModel as _BaseModel, Field as _Field, StrictStr as _StrictStr
 from pymongo import UpdateOne as _UpdateOne
 
+from nedrexdb.db import models
 
-class ProteinBase:
+
+class ProteinBase(models.MongoMixin):
     node_type: str = "Protein"
     collection_name: str = "protein"
 
@@ -45,6 +47,7 @@ class Protein(_BaseModel, ProteinBase):
                 "geneName": self.geneName,
                 "taxid": self.taxid,
                 "sequence": self.sequence,
+                "type": self.node_type,
                 "updated": tnow,
             },
             "$setOnInsert": {"created": tnow},
