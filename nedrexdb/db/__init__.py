@@ -4,6 +4,7 @@ from pymongo import MongoClient as _MongoClient
 
 from nedrexdb import config as _config
 from nedrexdb.db.models.nodes import disorder as _disorder
+from nedrexdb.db.models.edges import disorder_is_subtype_of_disorder as _disorder_is_subtype_of_disorder
 
 
 @_dataclass
@@ -28,3 +29,4 @@ class MongoInstance:
         if not cls.DB:
             raise ValueError("run nedrexdb.db.connect() first to connect to MongoDB")
         _disorder.Disorder.set_indexes(cls.DB)
+        _disorder_is_subtype_of_disorder.DisorderIsSubtypeOfDisorder.set_indexes(cls.DB)

@@ -1,3 +1,4 @@
+import datetime as _datetime
 from typing import List as _List
 
 from pydantic import BaseModel as _BaseModel, Field as _Field, StrictStr as _StrictStr
@@ -28,6 +29,8 @@ class Disorder(_BaseModel, DisorderBase):
     description: _StrictStr = ""
 
     def generate_update(self):
+        tnow = _datetime.datetime.utcnow()
+
         query = {"primaryDomainId": self.primaryDomainId}
         update = {
             "$addToSet": {
@@ -39,7 +42,9 @@ class Disorder(_BaseModel, DisorderBase):
                 "displayName": self.displayName,
                 "description": self.description,
                 "type": self.node_type,
+                "updated": tnow,
             },
+            "$setOnInsert": {"created": tnow},
         }
 
         return _UpdateOne(query, update, upsert=True)

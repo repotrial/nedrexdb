@@ -5,6 +5,7 @@ from more_itertools import chunked as _chunked
 from nedrexdb.db import MongoInstance
 from nedrexdb.db.parsers import _get_file_location_factory
 from nedrexdb.db.models.nodes.disorder import Disorder
+from nedrexdb.db.models.edges.disorder_is_subtype_of_disorder import DisorderIsSubtypeOfDisorder
 
 get_file_location = _get_file_location_factory("mondo")
 
@@ -112,6 +113,24 @@ def _is_deprecated(node) -> bool:
     return False
 
 
+def _parse_edges(edges):
+    prefix = "http://purl.obolibrary.org/obo/MONDO_"
+    for edge in edges:
+        if not edge["sub"].startswith(prefix):
+            continue
+        if not edge["obj"].startswith(prefix):
+            continue
+        if not edge["pred"] == "is_a":
+            continue
+
+        # diad = disorder is a disorder
+        diad = DisorderIsSubtypeOfDisorder()
+        diad.sourceDomainId = edge["sub"].replace(prefix, "mondo.")
+        diad.targetDomainId = edge["obj"].replace(prefix, "mondo.")
+
+        yield diad.generate_update()
+
+
 def parse_mondo_json():
     # Get the filename based on the config
     filename = get_file_location("json")
@@ -127,3 +146,7 @@ def parse_mondo_json():
     mondo_records = (MondoRecord(node).parse().generate_update() for node in nodes)
     for chunk in _chunked(mondo_records, 1_000):
         MongoInstance.DB[Disorder.collection_name].bulk_write(chunk)
+
+    edges = graph["edges"]
+    for chunk in _chunked(_parse_edges(edges), 1_000):
+        MongoInstance.DB[DisorderIsSubtypeOfDisorder.collection_name].bulk_write(chunk)
