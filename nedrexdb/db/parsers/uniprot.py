@@ -1,6 +1,8 @@
 import gzip as _gzip
 import re as _re
+import sys as _sys
 import itertools as _itertools
+from csv import DictReader as _DictReader, field_size_limit as _field_size_limit
 
 from Bio import SeqIO as _SeqIO, SeqRecord as _SeqRecord
 from more_itertools import chunked as _chunked
@@ -8,9 +10,13 @@ from tqdm import tqdm as _tqdm
 
 from nedrexdb.db import MongoInstance
 from nedrexdb.db.parsers import _get_file_location_factory
+from nedrexdb.db.models.nodes.gene import Gene
 from nedrexdb.db.models.nodes.protein import Protein
+from nedrexdb.db.models.edges.protein_encoded_by_gene import ProteinEncodedByGene
 
 get_file_location = _get_file_location_factory("uniprot")
+
+_field_size_limit(_sys.maxsize)
 
 
 class UniProtRecord:
@@ -93,6 +99,27 @@ class UniProtRecord:
         return p
 
 
+class IDMapRow:
+    def __init__(self, row):
+        self._row = row
+
+    def get_source_domain_id(self) -> str:
+        return f"uniprot.{self._row['UniProtKB-AC']}"
+
+    def get_target_domain_ids(self) -> list[str]:
+        genes = [f"entrez.{acc}" for acc in self._row["GeneID (EntrezGene)"].split(";") if acc.strip()]
+        return genes
+
+    def parse(self):
+        pebg = ProteinEncodedByGene()
+        pebg.sourceDomainId = self.get_source_domain_id()
+
+        genes = self.get_target_domain_ids()
+        for gene in genes:
+            pebg.targetDomainId = gene
+            yield pebg
+
+
 def _iter_gzipped_swiss(fname):
     with _gzip.open(fname, "rt") as f:
         for record in _SeqIO.parse(f, "swiss"):
@@ -110,3 +137,55 @@ def parse_proteins():
         leave=False,
     ):
         MongoInstance.DB[Protein.collection_name].bulk_write(chunk)
+
+
+def parse_idmap():
+    fieldnames = (
+        "UniProtKB-AC",
+        "UniProtKB-ID",
+        "GeneID (EntrezGene)",
+        "RefSeq",
+        "GI",
+        "PDB",
+        "GO",
+        "UniRef100",
+        "UniRef90",
+        "UniRef50",
+        "UniParc",
+        "PIR",
+        "NCBI-taxon",
+        "MIM",
+        "UniGene",
+        "PubMed",
+        "EMBL",
+        "EMBL-CDS",
+        "Ensembl",
+        "Ensembl_TRS",
+        "Ensembl_PRO",
+        "Additional PubMed",
+    )
+    filename = get_file_location("idmapping")
+
+    comment_char = "#"
+    delimiter = "\t"
+
+    gene_ids = {doc["primaryDomainId"] for doc in Gene.find(MongoInstance.DB)}
+    protein_ids = {doc["primaryDomainId"] for doc in Protein.find(MongoInstance.DB)}
+
+    with _gzip.open(filename, "rt") as f:
+        filtered_f = filter(lambda row: row[0] != comment_char, f)
+        reader = _DictReader(filtered_f, delimiter=delimiter, fieldnames=fieldnames)
+
+        def record_gen():
+            for row in reader:
+                for pebg in IDMapRow(row).parse():
+                    if pebg.sourceDomainId not in protein_ids:
+                        continue
+                    if pebg.targetDomainId not in gene_ids:
+                        continue
+
+                    yield pebg
+
+        updates = (pebg.generate_update() for pebg in record_gen())
+        for chunk in _tqdm(_chunked(updates, 1_000), desc="Parsing UniProt ID map", leave=False):
+            MongoInstance.DB[ProteinEncodedByGene.collection_name].bulk_write(chunk)

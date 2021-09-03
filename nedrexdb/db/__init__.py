@@ -10,6 +10,7 @@ from nedrexdb.db.models.nodes import (
 )
 from nedrexdb.db.models.edges import (
     disorder_is_subtype_of_disorder as _disorder_is_subtype_of_disorder,
+    protein_encoded_by_gene as _protein_encoded_by_gene,
 )
 
 
@@ -34,7 +35,10 @@ class MongoInstance:
     def set_indexes(cls):
         if not cls.DB:
             raise ValueError("run nedrexdb.db.connect() first to connect to MongoDB")
+        # Nodes
         _disorder.Disorder.set_indexes(cls.DB)
         _gene.Gene.set_indexes(cls.DB)
         _protein.Protein.set_indexes(cls.DB)
+        # Edges
         _disorder_is_subtype_of_disorder.DisorderIsSubtypeOfDisorder.set_indexes(cls.DB)
+        _protein_encoded_by_gene.ProteinEncodedByGene.set_indexes(cls.DB)
