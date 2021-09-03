@@ -4,7 +4,10 @@ from mongoengine import StringField as _StringField
 
 
 class Drug(_Document):
-    meta = {"indexes": ["primaryDomainId", "domainIds"], "allow_inheritance": True}
+    meta = {
+        "indexes": ["primaryDomainId", "domainIds"],
+        "allow_inheritance": True,
+    }
 
     primaryDomainId = _StringField(unique=True)
     domainIds = _ListField(_StringField(), default=[])

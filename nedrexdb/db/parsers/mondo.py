@@ -5,7 +5,9 @@ from more_itertools import chunked as _chunked
 from nedrexdb.db import MongoInstance
 from nedrexdb.db.parsers import _get_file_location_factory
 from nedrexdb.db.models.nodes.disorder import Disorder
-from nedrexdb.db.models.edges.disorder_is_subtype_of_disorder import DisorderIsSubtypeOfDisorder
+from nedrexdb.db.models.edges.disorder_is_subtype_of_disorder import (
+    DisorderIsSubtypeOfDisorder,
+)
 
 get_file_location = _get_file_location_factory("mondo")
 

@@ -104,5 +104,9 @@ def parse_proteins():
     uniprot_records = _itertools.chain(*[_iter_gzipped_swiss(filename) for filename in filenames])
     updates = (UniProtRecord(record).parse().generate_update() for record in uniprot_records)
 
-    for chunk in _tqdm(_chunked(updates, 1_000), desc="Parsing Swiss-Prot and TrEMBL", leave=False):
+    for chunk in _tqdm(
+        _chunked(updates, 1_000),
+        desc="Parsing Swiss-Prot and TrEMBL",
+        leave=False,
+    ):
         MongoInstance.DB[Protein.collection_name].bulk_write(chunk)

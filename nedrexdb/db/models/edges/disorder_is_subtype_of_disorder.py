@@ -31,6 +31,9 @@ class DisorderIsSubtypeOfDisorder(_BaseModel, DisorderIsSubtypeOfDisorderBase):
             "sourceDomainId": self.sourceDomainId,
             "targetDomainId": self.targetDomainId,
         }
-        update = {"$setOnInsert": {"created": tnow}, "$set": {"updated": tnow, "type": self.edge_type}}
+        update = {
+            "$setOnInsert": {"created": tnow},
+            "$set": {"updated": tnow, "type": self.edge_type},
+        }
 
         return _UpdateOne(query, update, upsert=True)

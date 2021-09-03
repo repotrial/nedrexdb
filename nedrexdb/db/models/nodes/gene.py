@@ -1,6 +1,11 @@
 import datetime as _datetime
+from typing import Optional as _Optional
 
-from pydantic import BaseModel as _BaseModel, Field as _Field, StrictStr as _StrictStr
+from pydantic import (
+    BaseModel as _BaseModel,
+    Field as _Field,
+    StrictStr as _StrictStr,
+)
 from pymongo import UpdateOne as _UpdateOne
 
 from nedrexdb.db import models
@@ -24,7 +29,7 @@ class Gene(_BaseModel, GeneBase):
 
     displayName: _StrictStr = ""
     synonyms: list[str] = _Field(default_factory=list)
-    approvedSymbol: _StrictStr = ""
+    approvedSymbol: _Optional[_StrictStr] = None
     symbols: list[str] = _Field(default_factory=list)
     description: _StrictStr = ""
 
