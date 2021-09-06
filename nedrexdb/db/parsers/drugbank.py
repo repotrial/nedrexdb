@@ -3,7 +3,6 @@ from collections import OrderedDict as _OrderedDict
 from multiprocessing import Pool as _Pool
 from typing import Optional as _Optional
 from uuid import uuid4 as _uuid4
-from zipfile import ZipFile as _ZipFile
 
 from more_itertools import chunked as _chunked
 from tqdm import tqdm as _tqdm
@@ -211,28 +210,22 @@ def parse_drugbank():
     filename = get_file_location("all")
 
     def db_iter():
-        # Open the zipfile
-        with _ZipFile(filename, "r") as zf:
-            files = zf.namelist()
-            if len(files) != 1:
-                raise _AssumptionError("expected DrugBank zip to contain only one file")
+        # Open the only file in the zipfile
+        with open(filename, "r") as handle:
+            depth = 0
 
-            # Open the only file in the zipfile
-            with zf.open(files.pop(), "r") as handle:
-                depth = 0
+            # Iterate through and yield drugs.
+            for event, elem in _et.iterparse(handle, events=["start", "end"]):
+                if elem.tag != ns("drug"):
+                    continue
 
-                # Iterate through and yield drugs.
-                for event, elem in _et.iterparse(handle, events=["start", "end"]):
-                    if elem.tag != ns("drug"):
-                        continue
+                if event == "start":
+                    depth += 1
+                elif event == "end":
+                    depth -= 1
 
-                    if event == "start":
-                        depth += 1
-                    elif event == "end":
-                        depth -= 1
-
-                    if event == "end" and depth == 0:
-                        yield elem
+                if event == "end" and depth == 0:
+                    yield elem
 
     # NOTE: Only using two processes here, because I suspect the speed limiting
     #       factor is the on-the-fly Zip decompression, rather than processing

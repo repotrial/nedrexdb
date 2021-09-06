@@ -15,7 +15,7 @@ def _get_file_location_factory(database):
 
         path = _Path(_config["db.root_directory"]) / _config["sources.directory"] / database / filename
 
-        assert path.exists()
+        assert path.exists, f"{path} does not exist"
         return path
 
     return inner
