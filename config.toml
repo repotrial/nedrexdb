@@ -58,6 +58,11 @@ url = "http://purl.obolibrary.org/obo/hp.obo"
 url = "http://purl.obolibrary.org/obo/hp/hpoa/phenotype.hpoa"
 
 
+[sources.iid]
+[sources.iid.human]
+url = "http://iid.ophid.utoronto.ca/static/download/human_annotated_PPIs.txt.gz"
+
+
 [sources.intact]
 [sources.intact.psimitab]
 url = "http://ftp.ebi.ac.uk/pub/databases/intact/current/psimitab/intact.zip"
