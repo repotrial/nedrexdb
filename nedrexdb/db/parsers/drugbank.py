@@ -1,5 +1,6 @@
 import xml.etree.cElementTree as _et
 from collections import OrderedDict as _OrderedDict
+from itertools import chain
 from multiprocessing import Pool as _Pool
 from typing import Optional as _Optional
 from uuid import uuid4 as _uuid4
@@ -11,9 +12,66 @@ from xmljson import badgerfish as _bf
 from nedrexdb.db import MongoInstance
 from nedrexdb.db.parsers import _get_file_location_factory
 from nedrexdb.db.models.nodes.drug import Drug, BiotechDrug, SmallMoleculeDrug
+from nedrexdb.db.models.edges.drug_has_target import DrugHasTarget
 from nedrexdb.exceptions import AssumptionError as _AssumptionError
 
 get_file_location = _get_file_location_factory("drugbank")
+
+
+def _recursive_yield(elem):
+    if isinstance(elem, _OrderedDict):
+        yield elem
+    else:
+        for i in elem:
+            yield from _recursive_yield(i)
+
+
+class DrugBankDrugTarget:
+    def __init__(self, entry):
+        self._entry = entry
+
+    def iter_targets(self):
+        targets = self._entry.get(ns("targets"))
+        if not targets:
+            return []
+
+        targets = targets.get(ns("target"))
+        if not targets:
+            return []
+
+        for target in _recursive_yield(targets):
+            actions = target.get(ns("actions"))
+            if actions:
+                actions = [i["$"] for i in _recursive_yield(actions[ns("action")])]
+            else:
+                actions = []
+
+            polypeptide = target.get(ns("polypeptide"))
+            if not polypeptide:
+                continue
+
+            for item in _recursive_yield(polypeptide):
+                if not item["@source"] in {"TrEMBL", "Swiss-Prot"}:
+                    continue
+
+                yield (f"uniprot.{item['@id']}", actions)
+
+    def get_drug(self):
+        return DrugBankEntry(self._entry).get_primary_domain_id()
+
+    def parse(self) -> list[DrugHasTarget]:
+        drug = self.get_drug()
+
+        updates = [
+            DrugHasTarget(
+                sourceDomainId=drug,
+                targetDomainId=protein,
+                actions=actions,
+                databases=["DrugBank"],
+            )
+            for protein, actions in self.iter_targets()
+        ]
+        return updates
 
 
 class DrugBankEntry:
@@ -202,15 +260,18 @@ def ns(string) -> str:
 
 
 def _entry_to_update(entry):
+    # NOTE: This function parses both drugs and drug targets, which means that
+    #       there is no need to iterate over the file a second time.
     entry_as_json = _bf.data(entry)[ns("drug")]
-    return DrugBankEntry(entry_as_json).parse().generate_update()
+    db = DrugBankEntry(entry_as_json).parse().generate_update()
+    dht = [i.generate_update() for i in DrugBankDrugTarget(entry_as_json).parse()]
+    return db, dht
 
 
 def parse_drugbank():
     filename = get_file_location("all")
 
     def db_iter():
-        # Open the only file in the zipfile
         with open(filename, "r") as handle:
             depth = 0
 
@@ -227,11 +288,17 @@ def parse_drugbank():
                 if event == "end" and depth == 0:
                     yield elem
 
-    # NOTE: Only using two processes here, because I suspect the speed limiting
-    #       factor is the on-the-fly Zip decompression, rather than processing
-    #       the XML code.
     with _Pool(2) as pool:
         updates = pool.imap_unordered(_entry_to_update, db_iter(), chunksize=10)
         for chunk in _tqdm(_chunked(updates, 100)):
             chunk = [item for item in chunk if item]
-            MongoInstance.DB[Drug.collection_name].bulk_write(chunk)
+            drugs, drug_targets = zip(*chunk)
+
+            drugs = list(drugs)
+            MongoInstance.DB[Drug.collection_name].bulk_write(drugs)
+
+            drug_targets = list(chain(*drug_targets))
+            # NOTE: In testing, it was possible to get an empty list for drug
+            #       targets, which causes the bulk_write method to fail.
+            if drug_targets:
+                MongoInstance.DB[DrugHasTarget.collection_name].bulk_write(drug_targets)

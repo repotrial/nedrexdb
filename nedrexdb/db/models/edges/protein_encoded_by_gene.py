@@ -27,7 +27,13 @@ class ProteinEncodedByGene(_BaseModel, ProteinEncodedByGeneBase):
     def generate_update(self):
         tnow = _datetime.datetime.utcnow()
 
-        query = {"sourceDomainId": self.sourceDomainId, "targetDomainId": self.targetDomainId}
-        update = {"$setOnInsert": {"created": tnow}, "$set": {"updated": tnow, "type": self.edge_type}}
+        query = {
+            "sourceDomainId": self.sourceDomainId,
+            "targetDomainId": self.targetDomainId,
+        }
+        update = {
+            "$setOnInsert": {"created": tnow},
+            "$set": {"updated": tnow, "type": self.edge_type},
+        }
 
         return _UpdateOne(query, update, upsert=True)

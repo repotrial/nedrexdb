@@ -2,7 +2,10 @@ import gzip as _gzip
 import re as _re
 import sys as _sys
 import itertools as _itertools
-from csv import DictReader as _DictReader, field_size_limit as _field_size_limit
+from csv import (
+    DictReader as _DictReader,
+    field_size_limit as _field_size_limit,
+)
 
 from Bio import SeqIO as _SeqIO, SeqRecord as _SeqRecord
 from more_itertools import chunked as _chunked
@@ -12,7 +15,9 @@ from nedrexdb.db import MongoInstance
 from nedrexdb.db.parsers import _get_file_location_factory
 from nedrexdb.db.models.nodes.gene import Gene
 from nedrexdb.db.models.nodes.protein import Protein
-from nedrexdb.db.models.edges.protein_encoded_by_gene import ProteinEncodedByGene
+from nedrexdb.db.models.edges.protein_encoded_by_gene import (
+    ProteinEncodedByGene,
+)
 
 get_file_location = _get_file_location_factory("uniprot")
 
@@ -23,7 +28,15 @@ class UniProtRecord:
     _CURLY_REGEX = _re.compile(r"{|}")
     _DESCRIPTION_CUTOFF_STRINGS = ["Contains:", "Includes:", "Flags:"]
     _CATEGORY_FIELDS = ["RecName:", "AltName:", "SubName:", ""]
-    _SUBCATEGORY_FIELDS = ["Full=", "Short=", "EC=", "Allergen=", "Biotech=", "CD_antigen=", "INN="]
+    _SUBCATEGORY_FIELDS = [
+        "Full=",
+        "Short=",
+        "EC=",
+        "Allergen=",
+        "Biotech=",
+        "CD_antigen=",
+        "INN=",
+    ]
     _COMBINED_FIELDS = sorted(
         (" ".join(i) for i in _itertools.product(_CATEGORY_FIELDS, _SUBCATEGORY_FIELDS)),
         key=lambda i: len(i),
@@ -49,7 +62,10 @@ class UniProtRecord:
 
     def get_synonyms(self) -> list[str]:
         synonyms = self._record.description.split()
-        cutoff = next((val for val, item in enumerate(synonyms) if item in self._DESCRIPTION_CUTOFF_STRINGS), 999_999)
+        cutoff = next(
+            (val for val, item in enumerate(synonyms) if item in self._DESCRIPTION_CUTOFF_STRINGS),
+            999_999,
+        )
         synonyms = " ".join(synonyms[:cutoff])
         synonyms = self._COMBINATION_REGEX.split(synonyms)
         synonyms = [i.strip() for i in synonyms]
@@ -120,7 +136,11 @@ def parse_proteins():
     uniprot_records = _itertools.chain(*[_iter_gzipped_swiss(filename) for filename in filenames])
     updates = (UniProtRecord(record).parse().generate_update() for record in uniprot_records)
 
-    for chunk in _tqdm(_chunked(updates, 1_000), desc="Parsing Swiss-Prot and TrEMBL", leave=False):
+    for chunk in _tqdm(
+        _chunked(updates, 1_000),
+        desc="Parsing Swiss-Prot and TrEMBL",
+        leave=False,
+    ):
         MongoInstance.DB[Protein.collection_name].bulk_write(chunk)
 
 
@@ -172,5 +192,9 @@ def parse_idmap():
                     yield pebg
 
         updates = (pebg.generate_update() for pebg in record_gen())
-        for chunk in _tqdm(_chunked(updates, 1_000), desc="Parsing UniProt ID map", leave=False):
+        for chunk in _tqdm(
+            _chunked(updates, 1_000),
+            desc="Parsing UniProt ID map",
+            leave=False,
+        ):
             MongoInstance.DB[ProteinEncodedByGene.collection_name].bulk_write(chunk)

@@ -103,5 +103,9 @@ def parse_gene_info():
         reader = _DictReader(filtered_f, delimiter=delimiter, fieldnames=columns)
         updates = (GeneInfoRow(row).parse().generate_update() for row in reader)
 
-        for chunk in _tqdm(_chunked(updates, 1_000), desc="Parsing NCBI gene info", leave=False):
+        for chunk in _tqdm(
+            _chunked(updates, 1_000),
+            desc="Parsing NCBI gene info",
+            leave=False,
+        ):
             MongoInstance.DB[Gene.collection_name].bulk_write(chunk)

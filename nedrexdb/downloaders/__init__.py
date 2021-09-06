@@ -3,7 +3,9 @@ from pathlib import Path as _Path
 from nedrexdb import config as _config
 from nedrexdb.common import Downloader
 from nedrexdb.downloaders.biogrid import download_biogrid as _download_biogrid
-from nedrexdb.downloaders.drugbank import download_drugbank as _download_drugbank
+from nedrexdb.downloaders.drugbank import (
+    download_drugbank as _download_drugbank,
+)
 
 
 def download_all():
@@ -33,7 +35,12 @@ def download_all():
             if filename is None:
                 filename = url.rsplit("/", 1)[1]
 
-            d = Downloader(url=url, target=download_dir / source / filename, username=username, password=password)
+            d = Downloader(
+                url=url,
+                target=download_dir / source / filename,
+                username=username,
+                password=password,
+            )
             d.download()
 
     _download_biogrid()

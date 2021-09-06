@@ -17,7 +17,12 @@ def download_drugbank():
     zip_fname = target_dir / "all.zip"
     target_fname = (target_dir / biogrid_all["filename"]).resolve()
 
-    d = Downloader(url=url, target=zip_fname, username=biogrid["username"], password=biogrid["password"])
+    d = Downloader(
+        url=url,
+        target=zip_fname,
+        username=biogrid["username"],
+        password=biogrid["password"],
+    )
     d.download()
 
     # Unzip the zip

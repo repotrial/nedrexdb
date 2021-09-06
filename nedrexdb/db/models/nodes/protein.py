@@ -1,6 +1,10 @@
 import datetime as _datetime
 
-from pydantic import BaseModel as _BaseModel, Field as _Field, StrictStr as _StrictStr
+from pydantic import (
+    BaseModel as _BaseModel,
+    Field as _Field,
+    StrictStr as _StrictStr,
+)
 from pymongo import UpdateOne as _UpdateOne
 
 from nedrexdb.db import models
@@ -37,7 +41,10 @@ class Protein(_BaseModel, ProteinBase):
 
         query = {"primaryDomainId": self.primaryDomainId}
         update = {
-            "$addToSet": {"domainIds": {"$each": self.domainIds}, "synonyms": {"$each": self.synonyms}},
+            "$addToSet": {
+                "domainIds": {"$each": self.domainIds},
+                "synonyms": {"$each": self.synonyms},
+            },
             "$set": {
                 "displayName": self.displayName,
                 "comments": self.comments,
