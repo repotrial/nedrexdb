@@ -3,11 +3,7 @@ from dataclasses import dataclass as _dataclass
 from pymongo import MongoClient as _MongoClient
 
 from nedrexdb import config as _config
-from nedrexdb.db.models.nodes import (
-    disorder as _disorder,
-    gene as _gene,
-    protein as _protein,
-)
+from nedrexdb.db.models.nodes import disorder as _disorder, drug as _drug, gene as _gene, protein as _protein
 from nedrexdb.db.models.edges import (
     disorder_is_subtype_of_disorder as _disorder_is_subtype_of_disorder,
     protein_encoded_by_gene as _protein_encoded_by_gene,
@@ -37,6 +33,7 @@ class MongoInstance:
             raise ValueError("run nedrexdb.db.connect() first to connect to MongoDB")
         # Nodes
         _disorder.Disorder.set_indexes(cls.DB)
+        _drug.Drug.set_indexes(cls.DB)
         _gene.Gene.set_indexes(cls.DB)
         _protein.Protein.set_indexes(cls.DB)
         # Edges

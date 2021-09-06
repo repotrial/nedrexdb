@@ -23,15 +23,7 @@ class UniProtRecord:
     _CURLY_REGEX = _re.compile(r"{|}")
     _DESCRIPTION_CUTOFF_STRINGS = ["Contains:", "Includes:", "Flags:"]
     _CATEGORY_FIELDS = ["RecName:", "AltName:", "SubName:", ""]
-    _SUBCATEGORY_FIELDS = [
-        "Full=",
-        "Short=",
-        "EC=",
-        "Allergen=",
-        "Biotech=",
-        "CD_antigen=",
-        "INN=",
-    ]
+    _SUBCATEGORY_FIELDS = ["Full=", "Short=", "EC=", "Allergen=", "Biotech=", "CD_antigen=", "INN="]
     _COMBINED_FIELDS = sorted(
         (" ".join(i) for i in _itertools.product(_CATEGORY_FIELDS, _SUBCATEGORY_FIELDS)),
         key=lambda i: len(i),
@@ -57,10 +49,7 @@ class UniProtRecord:
 
     def get_synonyms(self) -> list[str]:
         synonyms = self._record.description.split()
-        cutoff = next(
-            (val for val, item in enumerate(synonyms) if item in self._DESCRIPTION_CUTOFF_STRINGS),
-            999_999,
-        )
+        cutoff = next((val for val, item in enumerate(synonyms) if item in self._DESCRIPTION_CUTOFF_STRINGS), 999_999)
         synonyms = " ".join(synonyms[:cutoff])
         synonyms = self._COMBINATION_REGEX.split(synonyms)
         synonyms = [i.strip() for i in synonyms]
@@ -131,11 +120,7 @@ def parse_proteins():
     uniprot_records = _itertools.chain(*[_iter_gzipped_swiss(filename) for filename in filenames])
     updates = (UniProtRecord(record).parse().generate_update() for record in uniprot_records)
 
-    for chunk in _tqdm(
-        _chunked(updates, 1_000),
-        desc="Parsing Swiss-Prot and TrEMBL",
-        leave=False,
-    ):
+    for chunk in _tqdm(_chunked(updates, 1_000), desc="Parsing Swiss-Prot and TrEMBL", leave=False):
         MongoInstance.DB[Protein.collection_name].bulk_write(chunk)
 
 

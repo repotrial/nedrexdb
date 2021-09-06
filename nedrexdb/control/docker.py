@@ -160,10 +160,7 @@ class _NeDRexBaseInstance(_NeDRexInstance):
         self._set_up_express()
 
     def remove(self, remove_db_volume=False, remove_configdb_volume=True):
-        self._remove_mongo(
-            remove_db_volume=remove_db_volume,
-            remove_configdb_volume=remove_configdb_volume,
-        )
+        self._remove_mongo(remove_db_volume=remove_db_volume, remove_configdb_volume=remove_configdb_volume)
         self._remove_express()
         self._remove_network()
 

@@ -1,11 +1,7 @@
 import datetime as _datetime
 from typing import List as _List
 
-from pydantic import (
-    BaseModel as _BaseModel,
-    Field as _Field,
-    StrictStr as _StrictStr,
-)
+from pydantic import BaseModel as _BaseModel, Field as _Field, StrictStr as _StrictStr
 from pymongo import UpdateOne as _UpdateOne
 
 from nedrexdb.db import models

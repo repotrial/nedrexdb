@@ -10,10 +10,7 @@ from bs4 import BeautifulSoup
 
 from nedrexdb import config as _config
 from nedrexdb.common import change_directory as _cd
-from nedrexdb.exceptions import (
-    AssumptionError as _AssumptionError,
-    ProcessError as _ProcessError,
-)
+from nedrexdb.exceptions import AssumptionError as _AssumptionError, ProcessError as _ProcessError
 from nedrex.logger import logger
 
 
@@ -49,11 +46,7 @@ def download_biogrid():
     with _cd(biogrid_dir):
         logger.debug("Downloading BioGRID v%s" % version)
         _urlretrieve(url, zip_fname)
-        _subprocess.call(
-            ["unzip", zip_fname],
-            stdout=_subprocess.DEVNULL,
-            stderr=_subprocess.DEVNULL,
-        )
+        _subprocess.call(["unzip", zip_fname], stdout=_subprocess.DEVNULL, stderr=_subprocess.DEVNULL)
         _os.remove(zip_fname)
 
         counter = 0
