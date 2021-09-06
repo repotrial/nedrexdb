@@ -6,6 +6,10 @@ from pymongo import UpdateOne as _UpdateOne
 from nedrexdb.db import models
 
 
+def _nedrex_disorder_search(omim_id):
+    pass
+
+
 class DrugHastargetBase(models.MongoMixin):
     edge_type: str = "DrugHasTarget"
     collection_name: str = "drug_has_target"
@@ -40,7 +44,7 @@ class DrugHasTarget(_BaseModel, DrugHastargetBase):
                 "actions": {"$each": self.actions},
                 "databases": {"$each": self.databases},
             },
-            "$set": {"updated": tnow},
+            "$set": {"updated": tnow, "type": self.edge_type},
         }
 
         return _UpdateOne(query, update, upsert=True)
