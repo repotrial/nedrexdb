@@ -7,6 +7,7 @@ from nedrexdb.db.models.nodes import (
     disorder as _disorder,
     drug as _drug,
     gene as _gene,
+    pathway as _pathway,
     protein as _protein,
 )
 from nedrexdb.db.models.edges import (
@@ -43,6 +44,7 @@ class MongoInstance:
         _disorder.Disorder.set_indexes(cls.DB)
         _drug.Drug.set_indexes(cls.DB)
         _gene.Gene.set_indexes(cls.DB)
+        _pathway.Pathway.set_indexes(cls.DB)
         _protein.Protein.set_indexes(cls.DB)
         # Edges
         _disorder_is_subtype_of_disorder.DisorderIsSubtypeOfDisorder.set_indexes(cls.DB)
