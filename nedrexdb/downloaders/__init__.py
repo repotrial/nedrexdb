@@ -1,3 +1,4 @@
+import shutil as _shutil
 from pathlib import Path as _Path
 
 from nedrexdb import config as _config
@@ -8,9 +9,12 @@ from nedrexdb.downloaders.drugbank import (
 )
 
 
-def download_all():
+def download_all(force=False):
     base = _Path(_config["db.root_directory"])
     download_dir = base / _config["sources.directory"]
+
+    if force and (download_dir).exists():
+        _shutil.rmtree(download_dir)
     download_dir.mkdir(exist_ok=True, parents=True)
 
     sources = _config["sources"]
@@ -20,9 +24,7 @@ def download_all():
     for source in filter(lambda i: i not in exclude_keys, sources):
         # Catch case to skip sources with bespoke downloaders.
         if source in {"biogrid", "drugbank"}:
-            pass
-
-        # TODO: Implement force-overwrites
+            continue
         (download_dir / source).mkdir(exist_ok=True)
 
         data = sources[source]

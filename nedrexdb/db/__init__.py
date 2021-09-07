@@ -14,6 +14,7 @@ from nedrexdb.db.models.edges import (
     drug_has_target as _drug_has_target,
     gene_associated_with_disorder as _gene_associated_with_disorder,
     protein_encoded_by_gene as _protein_encoded_by_gene,
+    protein_interacts_with_protein as _protein_interacts_with_protein,
 )
 
 
@@ -48,3 +49,4 @@ class MongoInstance:
         _drug_has_target.DrugHasTarget.set_indexes(cls.DB)
         _gene_associated_with_disorder.GeneAssociatedWithDisorder.set_indexes(cls.DB)
         _protein_encoded_by_gene.ProteinEncodedByGene.set_indexes(cls.DB)
+        _protein_interacts_with_protein.ProteinInteractsWithProtein.set_indexes(cls.DB)

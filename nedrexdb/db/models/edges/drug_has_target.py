@@ -6,10 +6,6 @@ from pymongo import UpdateOne as _UpdateOne
 from nedrexdb.db import models
 
 
-def _nedrex_disorder_search(omim_id):
-    pass
-
-
 class DrugHastargetBase(models.MongoMixin):
     edge_type: str = "DrugHasTarget"
     collection_name: str = "drug_has_target"
