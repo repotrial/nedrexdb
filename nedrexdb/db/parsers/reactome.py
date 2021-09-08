@@ -5,7 +5,9 @@ from more_itertools import chunked as _chunked
 from tqdm import tqdm as _tqdm
 
 from nedrexdb.db import MongoInstance
+from nedrexdb.db.models.edges.protein_in_pathway import ProteinInPathway
 from nedrexdb.db.models.nodes.pathway import Pathway
+from nedrexdb.db.models.nodes.protein import Protein
 from nedrexdb.db.parsers import _get_file_location_factory
 
 get_file_location = _get_file_location_factory("reactome")
@@ -14,18 +16,26 @@ get_file_location = _get_file_location_factory("reactome")
 class ReactomeRow:
     def __init__(self, row):
         self._row = row
-        self.__primary_id = None
+        self.__reactome_id = None
+        self.__uniprot_id = None
 
     @property
     def is_human(self):
         return self._row["Species"] == "Homo sapiens"
 
     @property
-    def primary_id(self):
-        if not self.__primary_id:
-            self.__primary_id = "reactome." f"{self._row['Reactome Pathway Stable identifier']}"
+    def reactome_id(self):
+        if not self.__reactome_id:
+            self.__reactome_id = f"reactome.{self._row['Reactome Pathway Stable identifier']}"
 
-        return self.__primary_id
+        return self.__reactome_id
+
+    @property
+    def uniprot_id(self):
+        if not self.__uniprot_id:
+            self.__uniprot_id = f"uniprot.{self._row['Source database identifier']}"
+
+        return self.__uniprot_id
 
     @property
     def display_name(self):
@@ -36,14 +46,22 @@ class ReactomeRow:
             return None
 
         pathway = Pathway(
-            primaryDomainId=self.primary_id,
-            domainIds=[self.primary_id],
+            primaryDomainId=self.reactome_id,
+            domainIds=[self.reactome_id],
             displayName=self.display_name,
             species="Homo sapiens",
             taxid=9606,
         )
 
         return pathway
+
+    def parse_protein_pathway_link(self):
+        if not self.is_human:
+            return None
+
+        link = ProteinInPathway(sourceDomainId=self.uniprot_id, targetDomainId=self.reactome_id)
+
+        return link
 
 
 class ReactomeParser:
@@ -86,7 +104,31 @@ class ReactomeParser:
 
         f.close()
 
+    def parse_protein_pathway_links(self):
+        if self.gzipped:
+            f = _gzip.open(self.f, "rt")
+        else:
+            f = self.f.open()
+
+        reader = _DictReader(f, fieldnames=self.columns, delimiter=self.delimiter)
+
+        protein_ids = {i["primaryDomainId"] for i in Protein.find(MongoInstance.DB)}
+        pathway_ids = {i["primaryDomainId"] for i in Pathway.find(MongoInstance.DB)}
+
+        updates = (ReactomeRow(row).parse_protein_pathway_link() for row in reader)
+        updates = (update for update in updates if update is not None)
+        updates = (update for update in updates if update.sourceDomainId in protein_ids)
+        updates = (update for update in updates if update.targetDomainId in pathway_ids)
+        updates = (update.generate_update() for update in updates)
+
+        for chunk in _tqdm(_chunked(updates, 1_000), leave=False):
+            MongoInstance.DB[ProteinInPathway.collection_name].bulk_write(chunk)
+
+        f.close()
+
 
 def parse():
     f = get_file_location("uniprot_annotations")
-    ReactomeParser(f).parse_pathways()
+    r = ReactomeParser(f)
+    # r.parse_pathways()
+    r.parse_protein_pathway_links()
