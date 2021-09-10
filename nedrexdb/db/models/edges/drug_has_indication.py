@@ -1,6 +1,6 @@
 import datetime as _datetime
 
-from pydantic import BaseModel as _BaseModel, StrictStr as _StrictStr
+from pydantic import BaseModel as _BaseModel, StrictStr as _StrictStr, Field as _Field
 from pymongo import UpdateOne as _UpdateOne
 
 from nedrexdb.db import models
@@ -23,6 +23,7 @@ class DrugHasIndication(_BaseModel, DrugHasIndicationBase):
 
     sourceDomainId: _StrictStr = ""
     targetDomainId: _StrictStr = ""
+    assertedBy: list[str] = _Field(default_factory=list)
 
     def generate_update(self):
         tnow = _datetime.datetime.utcnow()
@@ -39,6 +40,7 @@ class DrugHasIndication(_BaseModel, DrugHasIndicationBase):
             "$setOnInsert": {
                 "created": tnow,
             },
+            "$addToSet": {"assertedBy": {"$each": self.assertedBy}},
         }
 
         return _UpdateOne(query, update, upsert=True)

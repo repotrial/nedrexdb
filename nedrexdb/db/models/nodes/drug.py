@@ -37,6 +37,20 @@ class Drug(_BaseModel, DrugBase):
     casNumber: _StrictStr = ""
     indication: _StrictStr = ""
 
+    def generate_update(self):
+        tnow = _datetime.datetime.utcnow()
+        query = {"primaryDomainId": self.primaryDomainId}
+        update = {
+            "$addToSet": {
+                "domainIds": {"$each": self.domainIds},
+            },
+            "$set": {"updated": tnow},
+        }
+
+        # NOTE: This generate_update does not use upsert, because a Drug should
+        #       only ever be added via BiotechDrug and SmallMoleculeDrug.
+        return _UpdateOne(query, update)
+
 
 class BiotechDrug(Drug):
     node_type: _StrictStr = "BiotechDrug"

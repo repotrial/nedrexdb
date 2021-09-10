@@ -134,11 +134,7 @@ class DrugCentralContainer:
 
         return d
 
-    def iter_indications(self):
-        dc_to_db_map = self._get_drug_central_to_drugbank_map()
-        snomed_to_nedrex_map = _generate_snomed_to_nedrex_map()
-        nedrex_drugs = {drug["primaryDomainId"] for drug in Drug.find(MongoInstance.DB)}
-
+    def iter_indications(self, dc_to_db_map, snomed_to_nedrex_map, nedrex_drugs):
         df = _pd.read_sql_query('select * from "omop_relationship"', con=self.engine)
         df = df[~_pd.isnull(df.snomed_conceptid)]
         df = df[~_pd.isnull(df.struct_id)]
@@ -158,14 +154,11 @@ class DrugCentralContainer:
                 dhi = DrugHasIndication(
                     sourceDomainId=drug,
                     targetDomainId=indication,
+                    assertedBy=["Drug Central"],
                 )
                 yield dhi
 
-    def iter_contraindications(self):
-        dc_to_db_map = self._get_drug_central_to_drugbank_map()
-        snomed_to_nedrex_map = _generate_snomed_to_nedrex_map()
-        nedrex_drugs = {drug["primaryDomainId"] for drug in Drug.find(MongoInstance.DB)}
-
+    def iter_contraindications(self, dc_to_db_map, snomed_to_nedrex_map, nedrex_drugs):
         df = _pd.read_sql_query('select * from "omop_relationship"', con=self.engine)
         df = df[~_pd.isnull(df.snomed_conceptid)]
         df = df[~_pd.isnull(df.struct_id)]
@@ -185,6 +178,7 @@ class DrugCentralContainer:
                 dhc = DrugHasContraindication(
                     sourceDomainId=drug,
                     targetDomainId=contraindication,
+                    assertedBy=["Drug Central"],
                 )
                 yield dhc
 
@@ -201,17 +195,37 @@ def drug_central_container():
     p.stop()
 
 
+def _drug_central_xref_updates(dc_to_db_map: dict[str, list[str]], nedrex_drugs: set[str]):
+    for drug_central_id, drugbank_ids in dc_to_db_map.items():
+        for drugbank_id in drugbank_ids:
+            pid = f"drugbank.{drugbank_id}"
+            if pid not in nedrex_drugs:
+                continue
+
+            yield Drug(primaryDomainId=pid, domainIds=[f"drug_central.{drug_central_id}"])
+
+
 def parse_drug_central():
     with drug_central_container() as p:
         # NOTE: NeDRexDB does not include cross-references to the DrugCentral IDs.
         #       This should be added for quality of life and tracking.
 
-        # NOTE: Should add an 'assertedBy' property to indications.
-        updates = (dhi.generate_update() for dhi in p.iter_indications())
+        dc_to_db_map = p._get_drug_central_to_drugbank_map()
+        snomed_to_nedrex_map = _generate_snomed_to_nedrex_map()
+        nedrex_drugs = {drug["primaryDomainId"] for drug in Drug.find(MongoInstance.DB)}
+
+        updates = (drug.generate_update() for drug in _drug_central_xref_updates(dc_to_db_map, nedrex_drugs))
+        for chunk in _tqdm(_chunked(updates, 1_000)):
+            MongoInstance.DB[Drug.collection_name].bulk_write(chunk)
+
+        updates = (
+            dhi.generate_update() for dhi in p.iter_indications(dc_to_db_map, snomed_to_nedrex_map, nedrex_drugs)
+        )
         for chunk in _tqdm(_chunked(updates, 1_000)):
             MongoInstance.DB[DrugHasIndication.collection_name].bulk_write(chunk)
 
-        # NOTE: Should add an 'assertedBy' property to contraindications.
-        updates = (dhc.generate_update() for dhc in p.iter_contraindications())
+        updates = (
+            dhc.generate_update() for dhc in p.iter_contraindications(dc_to_db_map, snomed_to_nedrex_map, nedrex_drugs)
+        )
         for chunk in _tqdm(_chunked(updates, 1_000)):
             MongoInstance.DB[DrugHasContraindication.collection_name].bulk_write(chunk)
