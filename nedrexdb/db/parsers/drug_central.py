@@ -1,11 +1,12 @@
-from collections import defaultdict as _defaultdict
-from dataclasses import dataclass as _dataclass
-from itertools import product as _product
 import secrets as _secrets
 import socket as _socket
 import string as _string
-import time as _time
 import subprocess as _subprocess
+import time as _time
+from collections import defaultdict as _defaultdict
+from dataclasses import dataclass as _dataclass
+from contextlib import contextmanager as _contextmanager
+from itertools import product as _product
 from typing import Optional as _Optional
 
 import docker as _docker
@@ -15,11 +16,11 @@ from sqlalchemy import create_engine as _create_engine
 from tqdm import tqdm as _tqdm
 
 from nedrexdb.db import MongoInstance
-from nedrexdb.db.parsers import _get_file_location_factory
 from nedrexdb.db.models.edges.drug_has_contraindication import DrugHasContraindication
 from nedrexdb.db.models.edges.drug_has_indication import DrugHasIndication
 from nedrexdb.db.models.nodes.disorder import Disorder
 from nedrexdb.db.models.nodes.drug import Drug
+from nedrexdb.db.parsers import _get_file_location_factory
 from nedrexdb.logger import logger as _logger
 
 get_file_location = _get_file_location_factory("drug_central")
@@ -27,7 +28,7 @@ get_file_location = _get_file_location_factory("drug_central")
 _client = _docker.from_env()
 
 
-def _generate_snomed_to_nedrex_map():
+def _generate_snomed_to_nedrex_map() -> dict[str, list[str]]:
     d = _defaultdict(list)
     for dis in Disorder.find(MongoInstance.DB):
         snomed_ids = [acc for acc in dis["domainIds"] if acc.startswith("snomedct.")]
@@ -38,11 +39,11 @@ def _generate_snomed_to_nedrex_map():
 
 
 @_dataclass
-class PostgresContainer:
+class DrugCentralContainer:
     def __init__(self):
         self._password: _Optional[str] = None
         self._container_name: _Optional[str] = None
-        self._port: _Optional[str] = None
+        self._port: _Optional[int] = None
         self._container: _Optional[_docker.models.container.Container] = None
         self._engine = None
 
@@ -53,22 +54,26 @@ class PostgresContainer:
         return self._engine
 
     @property
-    def _address(self):
+    def _address(self) -> str:
         return f"postgresql://postgres:{self._password}@localhost:{self._port}"
 
     @property
-    def is_ready(self):
+    def is_ready(self) -> bool:
+        if self._container is None:
+            raise Exception("container is not running")
+
         result = self._container.exec_run("pg_isready")
-        return result
+        ready = result.output == b"/var/run/postgresql:5432 - accepting connections\n"
+        return ready
 
     @staticmethod
-    def generate_random_string(length: int):
+    def generate_random_string(length: int) -> str:
         alphabet = _string.digits + _string.ascii_letters
         string = "".join(_secrets.choice(alphabet) for _ in range(length))
         return string
 
     @staticmethod
-    def get_free_port():
+    def get_free_port() -> int:
         s = _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM)
         s.bind(("", 0))
         _, port = s.getsockname()
@@ -76,7 +81,7 @@ class PostgresContainer:
 
         return port
 
-    def start(self):
+    def start(self) -> None:
         if self._container:
             raise Exception("must stop existing postgres container first")
 
@@ -93,16 +98,11 @@ class PostgresContainer:
             detach=True,
         )
 
-        while self.is_ready.output != b"/var/run/postgresql:5432 - accepting connections\n":
+        while not self.is_ready:
             continue
         _time.sleep(1)
 
-    def list_tables(self):
-        engine = _create_engine(self._address)
-        q = engine.execute("SELECT pg_tables.tablename FROM pg_catalog.pg_tables;")
-        return q.fetchall()
-
-    def restore_from_sql_dump(self, infile):
+    def restore_from_sql_dump(self, infile) -> None:
         command = f"cat {infile} | "
         if f"{infile}".endswith("gz"):
             command += "gzip -d | "
@@ -110,16 +110,18 @@ class PostgresContainer:
 
         _logger.debug("Restoring Drug Central from postgres dump (this may take a while)...")
         p = _subprocess.Popen(command, shell=True, stdout=_subprocess.PIPE, stderr=_subprocess.PIPE)
-        p.communicate(input=True)
+        p.communicate(input=b"")
 
-    def stop(self):
+    def stop(self) -> None:
+        if self._container is None:
+            raise Exception(".stop() called on non-started DrugCentralContainer")
         self._container.stop()
         self._container = None
         self._port = None
         self._container_name = None
         self._engine = None
 
-    def _get_drug_central_to_drugbank_map(self):
+    def _get_drug_central_to_drugbank_map(self) -> dict[str, list[str]]:
         df = _pd.read_sql_query('select * from "identifier"', con=self.engine)
 
         d = _defaultdict(list)
@@ -187,24 +189,29 @@ class PostgresContainer:
                 yield dhc
 
 
-def parse_drug_central():
+@_contextmanager
+def drug_central_container():
     fname = get_file_location("postgres_dump").absolute()
-
-    p = PostgresContainer()
+    p = DrugCentralContainer()
     p.start()
     p.restore_from_sql_dump(fname)
 
-    # NOTE: NeDRexDB does not include cross-references to the DrugCentral IDs.
-    #       This should be added for quality of life and tracking.
-
-    # NOTE: Should add an 'assertedBy' property to indications.
-    updates = (dhi.generate_update() for dhi in p.iter_indications())
-    for chunk in _tqdm(_chunked(updates, 1_000)):
-        MongoInstance.DB[DrugHasIndication.collection_name].bulk_write(chunk)
-
-    # NOTE: Should add an 'assertedBy' property to contraindications.
-    updates = (dhc.generate_update() for dhc in p.iter_contraindications())
-    for chunk in _tqdm(_chunked(updates, 1_000)):
-        MongoInstance.DB[DrugHasContraindication.collection_name].bulk_write(chunk)
+    yield p
 
     p.stop()
+
+
+def parse_drug_central():
+    with drug_central_container() as p:
+        # NOTE: NeDRexDB does not include cross-references to the DrugCentral IDs.
+        #       This should be added for quality of life and tracking.
+
+        # NOTE: Should add an 'assertedBy' property to indications.
+        updates = (dhi.generate_update() for dhi in p.iter_indications())
+        for chunk in _tqdm(_chunked(updates, 1_000)):
+            MongoInstance.DB[DrugHasIndication.collection_name].bulk_write(chunk)
+
+        # NOTE: Should add an 'assertedBy' property to contraindications.
+        updates = (dhc.generate_update() for dhc in p.iter_contraindications())
+        for chunk in _tqdm(_chunked(updates, 1_000)):
+            MongoInstance.DB[DrugHasContraindication.collection_name].bulk_write(chunk)
