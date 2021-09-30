@@ -9,6 +9,7 @@ from nedrexdb.db.models.nodes import (
     gene as _gene,
     pathway as _pathway,
     protein as _protein,
+    go as _go,
 )
 from nedrexdb.db.models.edges import (
     disorder_is_subtype_of_disorder as _disorder_is_subtype_of_disorder,
@@ -19,6 +20,8 @@ from nedrexdb.db.models.edges import (
     protein_encoded_by_gene as _protein_encoded_by_gene,
     protein_in_pathway as _protein_in_pathway,
     protein_interacts_with_protein as _protein_interacts_with_protein,
+    go_is_subtype_of_go as _go_is_subtype_of_go,
+    protein_has_go_annotation as _protein_has_go_annotation,
 )
 
 
@@ -49,6 +52,7 @@ class MongoInstance:
         _gene.Gene.set_indexes(cls.DB)
         _pathway.Pathway.set_indexes(cls.DB)
         _protein.Protein.set_indexes(cls.DB)
+        _go.GO.set_indexes(cls.DB)
         # Edges
         _disorder_is_subtype_of_disorder.DisorderIsSubtypeOfDisorder.set_indexes(cls.DB)
         _drug_has_contraindication.DrugHasContraindication.set_indexes(cls.DB)
@@ -57,4 +61,6 @@ class MongoInstance:
         _gene_associated_with_disorder.GeneAssociatedWithDisorder.set_indexes(cls.DB)
         _protein_encoded_by_gene.ProteinEncodedByGene.set_indexes(cls.DB)
         _protein_in_pathway.ProteinInPathway.set_indexes(cls.DB)
-        _protein_interacts_with_protein.ProteinInteractsWithProtein.set_indexes(cls.DB)
+        _protein_interacts_with_protein.ProteinInteractsWithProtein.set_indexes(cls.DB),
+        _go_is_subtype_of_go.GOIsSubtypeOfGOBase.set_indexes(cls.DB)
+        _protein_has_go_annotation.ProteinHasGOAnnotation.set_indexes(cls.DB)

@@ -1,4 +1,6 @@
+import gzip as _gzip
 from collections import defaultdict as _defaultdict
+from csv import DictReader as _DictReader
 from itertools import chain as _chain
 
 from more_itertools import chunked as _chunked
@@ -8,10 +10,63 @@ from tqdm import tqdm as _tqdm
 from nedrexdb.db import MongoInstance
 from nedrexdb.db.parsers import _get_file_location_factory
 from nedrexdb.db.models.nodes.go import GO
+from nedrexdb.db.models.nodes.protein import Protein
 from nedrexdb.db.models.edges.go_is_subtype_of_go import GOIsSubtypeOfGO
+from nedrexdb.db.models.edges.protein_has_go_annotation import ProteinHasGOAnnotation
 from nedrexdb.logger import logger
 
 get_file_location = _get_file_location_factory("go")
+
+
+def iter_go_associations(f):
+    fieldnames = (
+        "DB",
+        "DB Object ID",
+        "DB Object Symbol",
+        "Qualifier",
+        "GO ID",
+        "DB:Reference (IDB:Reference)",
+        "Evidence Code",
+        "With (or) From",
+        "Aspect",
+        "DB Object Name",
+        "DB Object Synonym (ISynonym)",
+        "DB Object Type",
+        "Taxon(Itaxon)" "Date",
+        "Assigned By",
+        "Annotation Extension",
+        "Gene Product Form ID",
+    )
+
+    with _gzip.open(f, "rt") as f:
+        f = filter(lambda line: not line.startswith("!"), f)
+        reader = _DictReader(f, fieldnames=fieldnames, delimiter="\t")
+        for row in reader:
+            yield row
+
+
+class GOAssociation:
+    def __init__(self, row):
+        self._row = row
+
+    @property
+    def source_domain_id(self):
+        return f"uniprot.{self._row['DB Object ID']}"
+
+    @property
+    def target_domain_id(self):
+        return self._row["GO ID"].replace("GO:", "go.")
+
+    @property
+    def qualifiers(self):
+        return self._row["Qualifier"].split("|")
+
+    def parse(self):
+        return ProteinHasGOAnnotation(
+            sourceDomainId=self.source_domain_id,
+            targetDomainId=self.target_domain_id,
+            qualifiers=self.qualifiers,
+        )
 
 
 class GORelations:
@@ -70,12 +125,7 @@ def get_go_details(g):
 
     for s, p, o in _tqdm(g, total=len(g)):
         if str(s).startswith("http://purl.obolibrary.org/obo/GO_"):
-            go_details[s].append(
-                (
-                    p,
-                    o,
-                )
-            )
+            go_details[s].append((p, o))
 
     return go_details
 
@@ -97,3 +147,19 @@ def parse_go():
     for chunk in _chunked(updates, 1_000):
         chunk = [rel.generate_update() for rel in _chain(*chunk)]
         MongoInstance.DB[GOIsSubtypeOfGO.collection_name].bulk_write(chunk)
+
+
+def parse_goa():
+    go_terms = {doc["primaryDomainId"] for doc in GO.find(MongoInstance.DB)}
+    proteins = {doc["primaryDomainId"] for doc in Protein.find(MongoInstance.DB)}
+
+    file = get_file_location("go_annotations")
+
+    go_associations = iter_go_associations(file)
+    go_associations = (GOAssociation(assoc) for assoc in go_associations if assoc["DB"] == "UniProtKB")
+    go_associations = (assoc for assoc in go_associations if assoc.source_domain_id in proteins)
+    go_associations = (assoc for assoc in go_associations if assoc.target_domain_id in go_terms)
+
+    for chunk in _chunked(go_associations, 1_000):
+        update = [assoc.parse().generate_update() for assoc in chunk]
+        MongoInstance.DB[ProteinHasGOAnnotation.collection_name].bulk_write(update)
