@@ -40,3 +40,6 @@ Database orchestration changes have been added to facilitate automatic updates. 
 - [ ] Code to download the latest version of source databases is now included in this repository.
 
 <sup>$</sup> The scheduling of the NeDRexDB update is not included in this repository, because this depends on external factors (e.g., whether any tasks are running in the API). 
+
+## Licence
+This code is released under a GPLv3 license, which is available [here](https://github.com/repotrial/nedrexdb/blob/main/LICENSE). Please note that this licence applies ***ONLY*** to the code. An instance of NeDRexDB may require a different licence, depending in part on the databases integrated as part of the NeDRex instance and the intended use of the NeDRex instance. Repotrial cannot advise you on what a suitable license is for your circumstances. 
