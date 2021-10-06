@@ -1,8 +1,11 @@
 import subprocess as _sp
 from pathlib import Path as _Path
 
+from requests.exceptions import HTTPError as _HTTPError
+
 from nedrexdb import config as _config
 from nedrexdb.common import Downloader, change_directory
+from nedrexdb.logger import logger
 
 
 def download_drugbank():
@@ -23,7 +26,11 @@ def download_drugbank():
         username=biogrid["username"],
         password=biogrid["password"],
     )
-    d.download()
+    try:
+        d.download()
+    except _HTTPError as E:
+        logger.warning(f"Unable to download DrugBank: {E}")
+        return
 
     # Unzip the zip
     with change_directory(target_dir):
