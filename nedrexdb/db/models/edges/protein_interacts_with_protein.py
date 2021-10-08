@@ -44,7 +44,7 @@ class ProteinInteractsWithProtein(_BaseModel, ProteinInteractsWithProteinBase):
             },
             "$addToSet": {
                 "methods": {"$each": self.methods},
-                "databases": {"$each": self.databases},
+                "assertedBy": {"$each": self.databases},
                 "evidenceTypes": {"$each": self.evidenceTypes},
             },
         }

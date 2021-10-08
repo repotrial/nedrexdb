@@ -4,9 +4,10 @@ from pathlib import Path as _Path
 from nedrexdb import config as _config
 from nedrexdb.common import Downloader
 from nedrexdb.downloaders.biogrid import download_biogrid as _download_biogrid
-from nedrexdb.downloaders.drugbank import (
-    download_drugbank as _download_drugbank,
-)
+
+# from nedrexdb.downloaders.drugbank import (
+#    download_drugbank as _download_drugbank,
+# )
 
 
 def download_all(force=False):
@@ -46,4 +47,4 @@ def download_all(force=False):
             d.download()
 
     _download_biogrid()
-    _download_drugbank()
+    # _download_drugbank()

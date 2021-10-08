@@ -29,9 +29,12 @@ class IIDRow:
         return [i.strip() for i in self._row["methods"].split(";")]
 
     def get_databases(self) -> list[str]:
-        if self._row["dbs"] == "-":
-            return []
-        return [i.strip() for i in self._row["dbs"].split(";")]
+        return ["iid"]
+
+    # def get_databases(self) -> list[str]:
+    #     if self._row["dbs"] == "-":
+    #         return []
+    #     return [i.strip() for i in self._row["dbs"].split(";")]
 
     def get_evidence_types(self) -> list[str]:
         return [i.strip() for i in self._row["evidence type"].split(";")]
