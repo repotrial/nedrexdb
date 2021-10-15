@@ -8,10 +8,12 @@ from nedrexdb.db.models.nodes import (
     drug as _drug,
     gene as _gene,
     pathway as _pathway,
+    phenotype as _phenotype,
     protein as _protein,
     go as _go,
 )
 from nedrexdb.db.models.edges import (
+    disorder_has_phenotype as _disorder_has_phenotype,
     disorder_is_subtype_of_disorder as _disorder_is_subtype_of_disorder,
     drug_has_contraindication as _drug_has_contraindication,
     drug_has_indication as _drug_has_indication,
@@ -51,9 +53,11 @@ class MongoInstance:
         _drug.Drug.set_indexes(cls.DB)
         _gene.Gene.set_indexes(cls.DB)
         _pathway.Pathway.set_indexes(cls.DB)
+        _phenotype.Phenotype.set_indexes(cls.DB)
         _protein.Protein.set_indexes(cls.DB)
         _go.GO.set_indexes(cls.DB)
         # Edges
+        _disorder_has_phenotype.DisorderHasPhenotype.set_indexes(cls.DB)
         _disorder_is_subtype_of_disorder.DisorderIsSubtypeOfDisorder.set_indexes(cls.DB)
         _drug_has_contraindication.DrugHasContraindication.set_indexes(cls.DB)
         _drug_has_indication.DrugHasIndication.set_indexes(cls.DB)

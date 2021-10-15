@@ -130,5 +130,5 @@ class ReactomeParser:
 def parse():
     f = get_file_location("uniprot_annotations")
     r = ReactomeParser(f)
-    # r.parse_pathways()
+    r.parse_pathways()
     r.parse_protein_pathway_links()
