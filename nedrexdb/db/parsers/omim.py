@@ -48,7 +48,11 @@ class OMIMRow:
 
             for disorder in omim_nedrex_map.get(f"omim.{mim_number}", []):
                 gawd = GeneAssociatedWithDisorder(
-                    sourceDomainId=gene, targetDomainId=disorder, omimMappingCode=evidence, omimFlags=flags
+                    sourceDomainId=gene,
+                    targetDomainId=disorder,
+                    omimMappingCode=evidence,
+                    omimFlags=flags,
+                    assertedBy=["omim"],
                 )
                 gawd_edges.append(gawd)
 
