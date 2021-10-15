@@ -25,6 +25,8 @@ class GeneAssociatedWithDisorder(_BaseModel, GeneAssociatedWithDisorderBase):
     sourceDomainId: _StrictStr = ""
     targetDomainId: _StrictStr = ""
     assertedBy: list[str] = []
+    omimMappingCode: _Optional[int] = None
+    omimFlags: list[str] = []
     score: _Optional[float] = None
 
     def generate_update(self):
@@ -37,10 +39,12 @@ class GeneAssociatedWithDisorder(_BaseModel, GeneAssociatedWithDisorderBase):
         update = {
             "$setOnInsert": {"created": tnow},
             "$set": {"updated": tnow, "type": self.edge_type},
-            "$addToSet": {"assertedBy": {"$each": self.assertedBy}},
+            "$addToSet": {"assertedBy": {"$each": self.assertedBy}, "omimFlags": {"$each": self.omimFlags}},
         }
 
         if self.score:
             update["$set"]["score"] = self.score
+        if self.omimMappingCode:
+            update["$set"]["omimMappingCode"] = self.omimMappingCode
 
         return _UpdateOne(query, update, upsert=True)

@@ -28,19 +28,29 @@ class OMIMRow:
             return None
         gene = f"entrez.{self.row['Entrez Gene ID']}"
 
-        phenotypes = self.MIM_MAP_REGEX.findall(self.row["Phenotypes"])
-        phenotypes = [item.split() for item in phenotypes]
-        phenotypes = [(mim_number, evidence[1:-1]) for mim_number, evidence in phenotypes]
-        disorders = []
-        for mim, evidence in phenotypes:
-            for pid in omim_nedrex_map.get(f"omim.{mim}", []):
-                disorders.append((pid, evidence))
+        gawd_edges = []
 
-        # TODO: Store OMIM evidence type (check?) in NeDRex.
-        gawd_edges = [
-            GeneAssociatedWithDisorder(sourceDomainId=gene, targetDomainId=disorder, assertedBy=["omim"])
-            for disorder, _ in disorders
-        ]
+        omim_phenotypes = [i.strip() for i in self.row["Phenotypes"].split(";")]
+        for phenotype in omim_phenotypes:
+            mim_map = self.MIM_MAP_REGEX.findall(phenotype)
+            if not mim_map:
+                continue
+            assert len(mim_map) == 1
+
+            mim_number, evidence = mim_map.pop().split()
+            evidence = int(evidence[1:-1])
+
+            flags = []
+            if "{" in phenotype:
+                flags.append("susceptibility")
+            if "?" in phenotype:
+                flags.append("provisional")
+
+            for disorder in omim_nedrex_map.get(f"omim.{mim_number}", []):
+                gawd = GeneAssociatedWithDisorder(
+                    sourceDomainId=gene, targetDomainId=disorder, omimMappingCode=evidence, omimFlags=flags
+                )
+                gawd_edges.append(gawd)
 
         return gawd_edges
 
