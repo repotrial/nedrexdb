@@ -14,6 +14,7 @@ class ProteinInteractsWithProteinBase(models.MongoMixin):
     def set_indexes(cls, db):
         db[cls.collection_name].create_index("memberOne")
         db[cls.collection_name].create_index("memberTwo")
+        db[cls.collection_name].create_index("evidenceTypes")
         db[cls.collection_name].create_index([("memberOne", 1), ("memberTwo", 1)], unique=True)
 
 
