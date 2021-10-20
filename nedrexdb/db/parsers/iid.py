@@ -37,7 +37,7 @@ class IIDRow:
     #     return [i.strip() for i in self._row["dbs"].split(";")]
 
     def get_evidence_types(self) -> list[str]:
-        return [i.strip() for i in self._row["evidence type"].split(";")]
+        return [i.strip() for i in self._row["evidence_type"].split(";")]
 
     def parse(self) -> _PPI:
         ppi = _PPI(
@@ -47,7 +47,6 @@ class IIDRow:
             databases=self.get_databases(),
             evidenceTypes=self.get_evidence_types(),
         )
-
         return ppi
 
 
@@ -68,7 +67,8 @@ class IIDParser:
 
         proteins = {i["primaryDomainId"] for i in _Protein.find(MongoInstance.DB)}
 
-        reader = _DictReader(f, delimiter="\t")
+        fieldnames = next(f).strip().split("\t")
+        reader = _DictReader(f, delimiter="\t", fieldnames=fieldnames)
         updates = (IIDRow(row).parse() for row in reader)
         updates = (ppi for ppi in updates if ppi.memberOne in proteins and ppi.memberTwo in proteins)
         updates = (ppi.generate_update() for ppi in updates)

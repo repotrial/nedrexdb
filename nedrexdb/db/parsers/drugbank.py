@@ -12,6 +12,7 @@ from xmljson import badgerfish as _bf
 from nedrexdb.db import MongoInstance
 from nedrexdb.db.parsers import _get_file_location_factory
 from nedrexdb.db.models.nodes.drug import Drug, BiotechDrug, SmallMoleculeDrug
+from nedrexdb.db.models.nodes.protein import Protein
 from nedrexdb.db.models.edges.drug_has_target import DrugHasTarget
 from nedrexdb.exceptions import AssumptionError as _AssumptionError
 
@@ -288,6 +289,8 @@ def parse_drugbank():
                 if event == "end" and depth == 0:
                     yield elem
 
+    proteins = {protein["primaryDomainId"] for protein in Protein.find(MongoInstance.DB)}
+
     with _Pool(2) as pool:
         updates = pool.imap_unordered(_entry_to_update, db_iter(), chunksize=10)
         for chunk in _tqdm(_chunked(updates, 100)):
@@ -298,6 +301,8 @@ def parse_drugbank():
             MongoInstance.DB[Drug.collection_name].bulk_write(drugs)
 
             drug_targets = list(chain(*drug_targets))
+            drug_targets = [update for update in drug_targets if update._filter["targetDomainId"] in proteins]
+
             # NOTE: In testing, it was possible to get an empty list for drug
             #       targets, which causes the bulk_write method to fail.
             if drug_targets:

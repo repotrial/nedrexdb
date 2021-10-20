@@ -4,7 +4,7 @@ from csv import DictReader as _DictReader
 from itertools import chain as _chain
 
 from more_itertools import chunked as _chunked
-from rdflib import Graph as _Graph
+from rdflib import Graph as _Graph, term as _term
 from tqdm import tqdm as _tqdm
 
 from nedrexdb.db import MongoInstance
@@ -75,10 +75,19 @@ class GORelations:
         self._po = po
 
     @property
+    def is_deprecated(self):
+        for p, o in self._po:
+            if p == _term.URIRef("http://www.w3.org/2002/07/owl#deprecated"):
+                if o == _term.Literal("true", datatype=_term.URIRef("http://www.w3.org/2001/XMLSchema#boolean")):
+                    return True
+        return False
+
+    @property
     def primary_id(self):
         for p, o in self._po:
             if str(p) == "http://www.geneontology.org/formats/oboInOwl#id":
                 return str(o).replace("GO:", "go.")
+        raise Exception(f"{[(p,o,) for p, o in self._po]}")
 
     @property
     def display_name(self):
@@ -138,7 +147,8 @@ def parse_go():
     details = get_go_details(g)
 
     logger.info("Parsing and storing GO terms")
-    updates = (GORelations(value).parse_go_term().generate_update() for value in details.values())
+    updates = (GORelations(value) for value in details.values())
+    updates = (go_rel.parse_go_term().generate_update() for go_rel in updates if not go_rel.is_deprecated)
     for chunk in _chunked(updates, 1_000):
         MongoInstance.DB[GO.collection_name].bulk_write(chunk)
 

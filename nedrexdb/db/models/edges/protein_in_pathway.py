@@ -35,6 +35,7 @@ class ProteinInPathway(_BaseModel, ProteinInPathwayBase):
         update = {
             "$set": {
                 "updated": tnow,
+                "type": self.edge_type,
             },
             "$setOnInsert": {
                 "created": tnow,

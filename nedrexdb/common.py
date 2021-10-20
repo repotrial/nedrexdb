@@ -7,7 +7,7 @@ import requests as _requests  # type: ignore
 from pydantic import BaseModel as _BaseModel, validator as _validator
 from tqdm import tqdm as _tqdm
 
-from nedrex.logger import logger as _logger
+from nedrexdb.logger import logger as _logger
 
 
 @contextmanager

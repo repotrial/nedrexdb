@@ -34,7 +34,7 @@ class GO(_BaseModel, GOBase):
                 "displayName": self.displayName,
                 "description": self.description,
                 "type": self.node_type,
-                "updatd": tnow,
+                "updated": tnow,
             },
             "$setOnInsert": {"created": tnow},
         }

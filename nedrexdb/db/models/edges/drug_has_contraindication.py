@@ -36,6 +36,7 @@ class DrugHasContraindication(_BaseModel, DrugHasContraindicationBase):
         update = {
             "$set": {
                 "updated": tnow,
+                "type": self.edge_type,
             },
             "$setOnInsert": {
                 "created": tnow,

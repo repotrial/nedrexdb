@@ -36,6 +36,7 @@ class DrugHasIndication(_BaseModel, DrugHasIndicationBase):
         update = {
             "$set": {
                 "updated": tnow,
+                "type": self.edge_type,
             },
             "$setOnInsert": {
                 "created": tnow,

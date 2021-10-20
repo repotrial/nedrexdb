@@ -14,7 +14,7 @@ from nedrexdb.exceptions import (
     AssumptionError as _AssumptionError,
     ProcessError as _ProcessError,
 )
-from nedrex.logger import logger
+from nedrexdb.logger import logger
 
 
 def get_latest_biogrid_version() -> str:
