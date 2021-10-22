@@ -60,5 +60,5 @@ def parse():
     proteins = {i["primaryDomainId"] for i in Protein.find(MongoInstance.DB)}
     updates = (ppi.generate_update() for ppi in parse_ppis() if ppi.memberOne in proteins and ppi.memberTwo in proteins)
 
-    for chunk in _tqdm(_chunked(updates, 1_000)):
+    for chunk in _tqdm(_chunked(updates, 1_000), leave=False, desc="Parsing PPIs from IntAct"):
         MongoInstance.DB[ProteinInteractsWithProtein.collection_name].bulk_write(chunk)

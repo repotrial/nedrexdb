@@ -99,7 +99,7 @@ class ReactomeParser:
         #       NeDRexDB. This is because each row is a *relation* and, thus,
         #       a single pathway can appear multiple times (as part of many)
         #       relations).
-        for chunk in _tqdm(_chunked(updates, 1_000), leave=False):
+        for chunk in _tqdm(_chunked(updates, 1_000), leave=False, desc="Parsing pathways"):
             MongoInstance.DB[Pathway.collection_name].bulk_write(chunk)
 
         f.close()
@@ -121,7 +121,9 @@ class ReactomeParser:
         updates = (update for update in updates if update.targetDomainId in pathway_ids)
         updates = (update.generate_update() for update in updates)
 
-        for chunk in _tqdm(_chunked(updates, 1_000), leave=False):
+        for chunk in _tqdm(
+            _chunked(updates, 1_000), leave=False, desc="Parsing protein-pathway relationships from Reactome"
+        ):
             MongoInstance.DB[ProteinInPathway.collection_name].bulk_write(chunk)
 
         f.close()

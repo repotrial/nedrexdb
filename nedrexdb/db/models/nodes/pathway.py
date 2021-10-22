@@ -31,6 +31,7 @@ class Pathway(_BaseModel, PathwayBase):
                 "domainIds": {"$each": self.domainIds},
             },
             "$set": {
+                "type": self.node_type,
                 "updated": tnow,
                 "taxid": self.taxid,
                 "species": self.species,

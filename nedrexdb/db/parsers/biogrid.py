@@ -112,7 +112,7 @@ class BioGridParser:
             reader = _DictReader(f, fieldnames=self.fieldnames, delimiter="\t")
             members = (BioGridRow(row).parse(proteins_allowed=proteins) for row in reader)
 
-            for chunk in _tqdm(_chunked(members, 1_000), leave=False):
+            for chunk in _tqdm(_chunked(members, 1_000), leave=False, desc="Parsing BioGRID"):
                 updates = [ppi.generate_update() for ppi in _chain(*chunk)]
                 if updates:
                     MongoInstance.DB[ProteinInteractsWithProtein.collection_name].bulk_write(updates)

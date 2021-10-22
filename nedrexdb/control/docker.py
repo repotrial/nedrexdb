@@ -150,6 +150,7 @@ class _NeDRexBaseInstance(_NeDRexInstance):
             "ports": {7474: ("127.0.0.1", self.neo4j_http_port), 7687: ("127.0.0.1", self.neo4j_bolt_port)},
             "environment": {"NEO4J_AUTH": "none"},
             "network": self.network_name,
+            "remove": True,
         }
 
         if neo4j_mode == "import":
@@ -183,6 +184,7 @@ class _NeDRexBaseInstance(_NeDRexInstance):
             volumes={volume: {"mode": "rw", "bind": "/data/db"}},
             ports={27017: ("127.0.0.1", self.mongo_port)},
             network=self.network_name,
+            remove=True,
         )
 
     def _set_up_express(self):
@@ -196,6 +198,7 @@ class _NeDRexBaseInstance(_NeDRexInstance):
             ports={8081: ("127.0.0.1", self.express_port)},
             network=self.network_name,
             environment={"ME_CONFIG_MONGODB_SERVER": self.mongo_container_name},
+            remove=True,
         )
 
     def _remove_neo4j(self, remove_db_volume=False):

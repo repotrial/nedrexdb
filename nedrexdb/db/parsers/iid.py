@@ -26,7 +26,7 @@ class IIDRow:
     def get_methods(self) -> list[str]:
         if self._row["methods"] == "-":
             return []
-        return [i.strip() for i in self._row["methods"].split(";")]
+        return [i.strip() for i in self._row["methods"].split("|")]
 
     def get_databases(self) -> list[str]:
         return ["iid"]
@@ -37,7 +37,7 @@ class IIDRow:
     #     return [i.strip() for i in self._row["dbs"].split(";")]
 
     def get_evidence_types(self) -> list[str]:
-        return [i.strip() for i in self._row["evidence_type"].split(";")]
+        return [i.strip() for i in self._row["evidence_type"].split("|")]
 
     def parse(self) -> _PPI:
         ppi = _PPI(
@@ -73,7 +73,7 @@ class IIDParser:
         updates = (ppi for ppi in updates if ppi.memberOne in proteins and ppi.memberTwo in proteins)
         updates = (ppi.generate_update() for ppi in updates)
 
-        for chunk in _tqdm(_chunked(updates, 1_000)):
+        for chunk in _tqdm(_chunked(updates, 1_000), leave=False, desc="Parsing IID"):
             MongoInstance.DB[_PPI.collection_name].bulk_write(chunk)
 
         f.close()

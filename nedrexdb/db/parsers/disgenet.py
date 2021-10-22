@@ -77,7 +77,7 @@ class DisGeNetParser:
         genes = {gene["primaryDomainId"] for gene in Gene.find(MongoInstance.DB)}
 
         updates = (DisGeNetRow(row).parse(umls_nedrex_map) for row in reader)
-        for chunk in _tqdm(_chunked(updates, 1_000)):
+        for chunk in _tqdm(_chunked(updates, 1_000), leave=False, desc="Parsing DisGeNET"):
             chunk = list(_chain(*chunk))
             if not chunk:
                 continue

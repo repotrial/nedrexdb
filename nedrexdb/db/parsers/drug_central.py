@@ -215,17 +215,17 @@ def parse_drug_central():
         nedrex_drugs = {drug["primaryDomainId"] for drug in Drug.find(MongoInstance.DB)}
 
         updates = (drug.generate_update() for drug in _drug_central_xref_updates(dc_to_db_map, nedrex_drugs))
-        for chunk in _tqdm(_chunked(updates, 1_000)):
+        for chunk in _tqdm(_chunked(updates, 1_000), leave=False, desc="Parsing Drug Central ID mapping file"):
             MongoInstance.DB[Drug.collection_name].bulk_write(chunk)
 
         updates = (
             dhi.generate_update() for dhi in p.iter_indications(dc_to_db_map, snomed_to_nedrex_map, nedrex_drugs)
         )
-        for chunk in _tqdm(_chunked(updates, 1_000)):
+        for chunk in _tqdm(_chunked(updates, 1_000), leave=False, desc="Parsing Drug Central indications"):
             MongoInstance.DB[DrugHasIndication.collection_name].bulk_write(chunk)
 
         updates = (
             dhc.generate_update() for dhc in p.iter_contraindications(dc_to_db_map, snomed_to_nedrex_map, nedrex_drugs)
         )
-        for chunk in _tqdm(_chunked(updates, 1_000)):
+        for chunk in _tqdm(_chunked(updates, 1_000), leave=False, desc="Parsing Drug Central contraindications"):
             MongoInstance.DB[DrugHasContraindication.collection_name].bulk_write(chunk)

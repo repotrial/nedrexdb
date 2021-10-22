@@ -131,11 +131,11 @@ def parse_hpoa():
 
 
 def parse():
-    for chunk in _tqdm(chunked(parse_phenotypes(), 1_000), leave=False):
+    for chunk in _tqdm(chunked(parse_phenotypes(), 1_000), leave=False, desc="Parsing HPO phenotypes"):
         updates = [node.generate_update() for node in chunk]
         MongoInstance.DB[Phenotype.collection_name].bulk_write(updates)
 
-    for chunk in _tqdm(chunked(parse_hpoa(), 1_000), leave=False):
+    for chunk in _tqdm(chunked(parse_hpoa(), 1_000), leave=False, desc="Parsing HPO disorder-phenotype relationships"):
         updates = [rel.generate_update() for rel in chunk]
         MongoInstance.DB[DisorderHasPhenotype.collection_name].bulk_write(updates)
     get_disorder_by_domain_id.cache_clear()

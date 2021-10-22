@@ -293,7 +293,7 @@ def parse_drugbank():
 
     with _Pool(2) as pool:
         updates = pool.imap_unordered(_entry_to_update, db_iter(), chunksize=10)
-        for chunk in _tqdm(_chunked(updates, 100)):
+        for chunk in _tqdm(_chunked(updates, 100), leave=False, desc="Parsing DrugBank"):
             chunk = [item for item in chunk if item]
             drugs, drug_targets = zip(*chunk)
 

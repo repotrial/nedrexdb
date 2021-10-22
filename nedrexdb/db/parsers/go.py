@@ -132,7 +132,7 @@ class GORelations:
 def get_go_details(g):
     go_details = _defaultdict(list)
 
-    for s, p, o in _tqdm(g, total=len(g)):
+    for s, p, o in g:
         if str(s).startswith("http://purl.obolibrary.org/obo/GO_"):
             go_details[s].append((p, o))
 
@@ -149,12 +149,12 @@ def parse_go():
     logger.info("Parsing and storing GO terms")
     updates = (GORelations(value) for value in details.values())
     updates = (go_rel.parse_go_term().generate_update() for go_rel in updates if not go_rel.is_deprecated)
-    for chunk in _chunked(updates, 1_000):
+    for chunk in _tqdm(_chunked(updates, 1_000), leave=False, desc="Parsing GO terms"):
         MongoInstance.DB[GO.collection_name].bulk_write(chunk)
 
     logger.info("Parsing and storing relationships between GO terms")
     updates = (GORelations(value).parse_go_relationships() for value in details.values())
-    for chunk in _chunked(updates, 1_000):
+    for chunk in _tqdm(_chunked(updates, 1_000), leave=False, desc="Parsing relationships between GO terms"):
         chunk = [rel.generate_update() for rel in _chain(*chunk)]
         MongoInstance.DB[GOIsSubtypeOfGO.collection_name].bulk_write(chunk)
 
@@ -170,6 +170,6 @@ def parse_goa():
     go_associations = (assoc for assoc in go_associations if assoc.source_domain_id in proteins)
     go_associations = (assoc for assoc in go_associations if assoc.target_domain_id in go_terms)
 
-    for chunk in _chunked(go_associations, 1_000):
+    for chunk in _tqdm(_chunked(go_associations, 1_000), leave=False, desc="Parsing GO annotations for proteins"):
         update = [assoc.parse().generate_update() for assoc in chunk]
         MongoInstance.DB[ProteinHasGOAnnotation.collection_name].bulk_write(update)
