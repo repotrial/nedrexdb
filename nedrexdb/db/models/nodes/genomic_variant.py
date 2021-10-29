@@ -26,7 +26,6 @@ class GenomicVariant(_BaseModel, GenomicVariantBase):
     chromosome: str = ""
     position: int = -1
 
-    clinicalSignificance: _List[str] = []
     referenceSequence: str = ""
     alternativeSequence: str = ""
 
@@ -40,7 +39,6 @@ class GenomicVariant(_BaseModel, GenomicVariantBase):
                 "updated": tnow,
                 "chromosome": self.chromosome,
                 "position": self.position,
-                "clinicalSignificance": self.clinicalSignificance,
                 "referenceSequence": self.referenceSequence,
                 "alternativeSequence": self.alternativeSequence,
             },
