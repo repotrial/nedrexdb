@@ -1,9 +1,11 @@
 import xml.etree.cElementTree as _et
 from collections import OrderedDict as _OrderedDict
+from csv import DictReader as _DictReader
 from itertools import chain
 from multiprocessing import Pool as _Pool
 from typing import Optional as _Optional
 from uuid import uuid4 as _uuid4
+from zipfile import ZipFile as _ZipFile
 
 from more_itertools import chunked as _chunked
 from tqdm import tqdm as _tqdm
@@ -269,7 +271,27 @@ def _entry_to_update(entry):
     return db, dht
 
 
+def parse_drugbank_open():
+    filename = get_file_location("open")
+    zf = _ZipFile(filename)
+    with zf.open("drugbank vocabulary.csv") as f:
+        f = (i.decode("utf-8") for i in f)
+        reader = _DictReader(f)
+        for row in reader:
+            drug = Drug()
+            drug.primaryDomainId = f"drugbank.{row['DrugBank ID']}"
+            drug.displayName = row["Common name"]
+            drug.casNumber = row["CAS"]
+            yield drug
+
+
 def parse_drugbank():
+    updates = (drug.generate_update() for drug in parse_drugbank_open())
+    for chunk in _chunked(updates, 1_000):
+        MongoInstance.DB[Drug.collection_name].bulk_write(chunk)
+
+
+def _parse_drugbank():
     filename = get_file_location("all")
 
     def db_iter():

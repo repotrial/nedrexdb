@@ -12,9 +12,9 @@ class VariantAssociatedWithDisorderBase(models.MongoMixin):
 
     @classmethod
     def set_indexes(cls, db):
-        db[cls.collection_name].create_index("sourceDomainId")
+        db[cls.collection_name].create_index("accession", unique=True)
         db[cls.collection_name].create_index("targetDomainId")
-        db[cls.collection_name].create_index([("sourceDomainId", 1), ("targetDomainId", 1)], unique=True)
+        db[cls.collection_name].create_index("sourceDomainId")
 
 
 class VariantAssociatedWithDisorder(_BaseModel, VariantAssociatedWithDisorderBase):
@@ -23,19 +23,23 @@ class VariantAssociatedWithDisorder(_BaseModel, VariantAssociatedWithDisorderBas
 
     sourceDomainId: _StrictStr = ""
     targetDomainId: _StrictStr = ""
+    accession: _StrictStr = ""
 
     reviewStatus: _StrictStr = ""
-    effects: list[dict[str, str]] = []
+    effects: list[str] = []
 
     def generate_update(self):
         tnow = _datetime.datetime.utcnow()
 
-        query = {"sourceDomainId": self.sourceDomainId, "targetDomainId": self.targetDomainId}
+        query = {"accession": self.accession}
 
         update = {
             "$set": {
                 "updated": tnow,
                 "type": self.edge_type,
+                "sourceDomainId": self.sourceDomainId,
+                "targetDomainId": self.targetDomainId,
+                "reviewStatus": self.reviewStatus,
             },
             "$addToSet": {
                 "effects": {"$each": self.effects},

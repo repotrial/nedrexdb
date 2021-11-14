@@ -43,13 +43,24 @@ class Drug(_BaseModel, DrugBase):
         update = {
             "$addToSet": {
                 "domainIds": {"$each": self.domainIds},
+                "synonyms": {"$each": self.synonyms},
+                "drugCategories": {"$each": self.drugCategories},
+                "drugGroups": {"$each": self.drugGroups},
             },
-            "$set": {"updated": tnow},
+            "$setOnInsert": {"created": tnow},
+            "$set": {
+                "updated": tnow,
+                "displayName": self.displayName,
+                "description": self.description,
+                "casNumber": self.casNumber,
+                "indication": self.indication,
+                "primaryDataset": self.primaryDataset,
+                "type": "Drug",
+            },
         }
 
-        # NOTE: This generate_update does not use upsert, because a Drug should
-        #       only ever be added via BiotechDrug and SmallMoleculeDrug.
-        return _UpdateOne(query, update)
+        # Changed to upsert=True to move towards a unified Drug model
+        return _UpdateOne(query, update, upsert=True)
 
 
 class BiotechDrug(Drug):

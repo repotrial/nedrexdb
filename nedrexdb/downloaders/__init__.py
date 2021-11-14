@@ -5,10 +5,6 @@ from nedrexdb import config as _config
 from nedrexdb.common import Downloader
 from nedrexdb.downloaders.biogrid import download_biogrid as _download_biogrid
 
-# from nedrexdb.downloaders.drugbank import (
-#    download_drugbank as _download_drugbank,
-# )
-
 
 def download_all(force=False):
     base = _Path(_config["db.root_directory"])
@@ -24,7 +20,9 @@ def download_all(force=False):
 
     for source in filter(lambda i: i not in exclude_keys, sources):
         # Catch case to skip sources with bespoke downloaders.
-        if source in {"biogrid", "drugbank"}:
+        if source in {
+            "biogrid",
+        }:
             continue
         (download_dir / source).mkdir(exist_ok=True)
 
@@ -47,4 +45,3 @@ def download_all(force=False):
             d.download()
 
     _download_biogrid()
-    # _download_drugbank()

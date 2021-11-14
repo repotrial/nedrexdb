@@ -79,11 +79,6 @@ class ClinVarXMLParser:
                     else:
                         variant_pdid = None
 
-                    if variant_pdid == "clinvar.7105":
-                        DISP = True
-                    else:
-                        DISP = False
-
                     if ms and variant_pdid in variant_ids:
                         traits = elem.find("ReferenceClinVarAssertion").find("TraitSet").findall("Trait")
                         traits = _chain(
@@ -99,33 +94,30 @@ class ClinVarXMLParser:
                         )
                         traits.discard(None)
 
-                        effect = (
-                            elem.find("ReferenceClinVarAssertion").find("ClinicalSignificance").find("Description").text
-                        )
+                        effects = [
+                            effect.strip()
+                            for effect in elem.find("ReferenceClinVarAssertion")
+                            .find("ClinicalSignificance")
+                            .find("Description")
+                            .text.split(",")
+                        ]
                         review_status = (
                             elem.find("ReferenceClinVarAssertion")
                             .find("ClinicalSignificance")
                             .find("ReviewStatus")
                             .text
                         )
-
-                        if DISP:
-                            print(elem.find("ReferenceClinVarAssertion").find("ClinVarAccession").attrib["Acc"])
-                            print(variant_pdid)
-                            print(traits)
-                            print(effect)
-                            print(review_status)
-                            print()
+                        acc = elem.find("ReferenceClinVarAssertion").find("ClinVarAccession").attrib["Acc"]
 
                         for trait in traits:
                             vawd = VariantAssociatedWithDisorder(
                                 sourceDomainId=variant_pdid,
                                 targetDomainId=trait,
-                                effects=[{"effect": effect, "reviewStatus": review_status}],
+                                accession=acc,
+                                effects=effects,
+                                reviewStatus=review_status,
                             )
 
-                            if DISP:
-                                print(vawd)
                             yield vawd
 
                     elem.clear()

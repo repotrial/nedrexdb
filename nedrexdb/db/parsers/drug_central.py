@@ -18,8 +18,10 @@ from tqdm import tqdm as _tqdm
 from nedrexdb.db import MongoInstance
 from nedrexdb.db.models.edges.drug_has_contraindication import DrugHasContraindication
 from nedrexdb.db.models.edges.drug_has_indication import DrugHasIndication
+from nedrexdb.db.models.edges.drug_has_target import DrugHasTarget
 from nedrexdb.db.models.nodes.disorder import Disorder
 from nedrexdb.db.models.nodes.drug import Drug
+from nedrexdb.db.models.nodes.protein import Protein
 from nedrexdb.db.parsers import _get_file_location_factory
 from nedrexdb.logger import logger as _logger
 
@@ -134,6 +136,20 @@ class DrugCentralContainer:
 
         return d
 
+    def iter_targets(self, dc_to_db_map, nedrex_proteins):
+        df = _pd.read_sql_query("select * from act_table_full", con=self.engine)
+        df = df[~_pd.isnull(df.struct_id)]
+        df = df[~_pd.isnull(df.accession)]
+
+        for _, row in df.iterrows():
+            drugbank_ids = dc_to_db_map.get(row["struct_id"], [])
+            drugs = [f"drugbank.{drug}" for drug in drugbank_ids]
+            uniprot_accessions = [i.strip() for i in row["accession"].split("|") if i.strip()]
+            uniprot_accessions = [f"uniprot.{i}" for i in uniprot_accessions]
+            uniprot_accessions = [i for i in uniprot_accessions if i in nedrex_proteins]
+            for drug, prot in _product(drugs, uniprot_accessions):
+                yield DrugHasTarget(sourceDomainId=drug, targetDomainId=prot, databases=["DrugCentral"])
+
     def iter_indications(self, dc_to_db_map, snomed_to_nedrex_map, nedrex_drugs):
         df = _pd.read_sql_query('select * from "omop_relationship"', con=self.engine)
         df = df[~_pd.isnull(df.snomed_conceptid)]
@@ -213,6 +229,11 @@ def parse_drug_central():
         dc_to_db_map = p._get_drug_central_to_drugbank_map()
         snomed_to_nedrex_map = _generate_snomed_to_nedrex_map()
         nedrex_drugs = {drug["primaryDomainId"] for drug in Drug.find(MongoInstance.DB)}
+        nedrex_proteins = {pro["primaryDomainId"] for pro in Protein.find(MongoInstance.DB)}
+
+        updates = (dht.generate_update() for dht in p.iter_targets(dc_to_db_map, nedrex_proteins))
+        for chunk in _tqdm(_chunked(updates, 1_000), leave=False, desc="Parsing Drug Central targets"):
+            MongoInstance.DB[DrugHasTarget.collection_name].bulk_write(chunk)
 
         updates = (drug.generate_update() for drug in _drug_central_xref_updates(dc_to_db_map, nedrex_drugs))
         for chunk in _tqdm(_chunked(updates, 1_000), leave=False, desc="Parsing Drug Central ID mapping file"):
