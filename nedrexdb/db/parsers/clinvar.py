@@ -218,9 +218,9 @@ def parse():
     fname = get_file_location("human_data")
     parser = ClinVarVCFParser(fname)
 
-    # updates = (ClinVarRow(i).parse_variant().generate_update() for i in parser.iter_rows())
-    # for chunk in _tqdm(_chunked(updates, 1_000), desc="Parsing ClinVar genomic variants", leave=False):
-    #     MongoInstance.DB[GenomicVariant.collection_name].bulk_write(chunk)
+    updates = (ClinVarRow(i).parse_variant().generate_update() for i in parser.iter_rows())
+    for chunk in _tqdm(_chunked(updates, 1_000), desc="Parsing ClinVar genomic variants", leave=False):
+        MongoInstance.DB[GenomicVariant.collection_name].bulk_write(chunk)
 
     def iter_variant_gene_relationships():
         for row in parser.iter_rows():
