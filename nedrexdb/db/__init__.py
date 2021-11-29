@@ -25,6 +25,7 @@ from nedrexdb.db.models.edges import (
     protein_interacts_with_protein as _protein_interacts_with_protein,
     go_is_subtype_of_go as _go_is_subtype_of_go,
     protein_has_go_annotation as _protein_has_go_annotation,
+    variant_affects_gene as _variant_affects_gene,
     variant_associated_with_disorder as _variant_associated_with_disorder,
 )
 
@@ -71,4 +72,5 @@ class MongoInstance:
         _protein_interacts_with_protein.ProteinInteractsWithProtein.set_indexes(cls.DB),
         _go_is_subtype_of_go.GOIsSubtypeOfGOBase.set_indexes(cls.DB)
         _protein_has_go_annotation.ProteinHasGOAnnotation.set_indexes(cls.DB)
+        _variant_affects_gene.VariantAffectsGene.set_indexes(cls.DB)
         _variant_associated_with_disorder.VariantAssociatedWithDisorder.set_indexes(cls.DB)

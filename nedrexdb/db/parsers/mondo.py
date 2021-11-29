@@ -18,7 +18,7 @@ class MondoRecord:
         "http://linkedlifedata.com/resource/umls/id/": "umls.",
         "http://purl.obolibrary.org/obo/NCIT_": "ncit.",
         "http://identifiers.org/mesh/": "mesh.",
-        "http://identifiers.org/omim/": "omim.",
+        "https://omim.org/entry/": "omim.",
         "http://identifiers.org/snomedct/": "snomedct.",
         "http://www.orpha.net/ORDO/Orphanet_": "orpha.",
         "http://identifiers.org/meddra/": "meddra.",

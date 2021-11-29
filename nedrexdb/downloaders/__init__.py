@@ -1,9 +1,27 @@
+import datetime as _datetime
 import shutil as _shutil
 from pathlib import Path as _Path
 
 from nedrexdb import config as _config
 from nedrexdb.common import Downloader
+from nedrexdb.db import MongoInstance
 from nedrexdb.downloaders.biogrid import download_biogrid as _download_biogrid
+
+
+class Version:
+    def __init__(self, string):
+        self.major, self.minor, self.patch = [int(i) for i in string.split(".")]
+
+    def increment(self, level):
+        if level == "major":
+            self.major += 1
+        elif level == "minor":
+            self.minor += 1
+        elif level == "patch":
+            self.patch += 1
+
+    def __repr__(self):
+        return f"{self.major}.{self.minor}.{self.patch}"
 
 
 def download_all(force=False):
@@ -18,7 +36,11 @@ def download_all(force=False):
     # Remove the source keys
     exclude_keys = {"directory", "username", "password"}
 
+    metadata = {"source_databases": {}}
+
     for source in filter(lambda i: i not in exclude_keys, sources):
+        metadata["source_databases"][source] = {"date": f"{_datetime.datetime.now().date()}", "version": None}
+
         # Catch case to skip sources with bespoke downloaders.
         if source in {
             "biogrid",
@@ -44,4 +66,20 @@ def download_all(force=False):
             )
             d.download()
 
+    metadata["source_databases"]["biogrid"] = {"date": f"{_datetime.datetime.now().date()}", "version": None}
     _download_biogrid()
+
+    docs = list(MongoInstance.DB["metadata"].find())
+    if len(docs) == 1:
+        version = docs[0]["version"]
+    elif len(docs) == 0:
+        version = "0.0.0"
+    else:
+        raise Exception("should only be one document in the metadata collection")
+
+    v = Version(version)
+    v.increment("patch")
+
+    metadata["version"] = f"{v}"
+
+    MongoInstance.DB["metadata"].replace_one({}, metadata, upsert=True)

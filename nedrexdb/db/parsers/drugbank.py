@@ -280,8 +280,11 @@ def parse_drugbank_open():
         for row in reader:
             drug = Drug()
             drug.primaryDomainId = f"drugbank.{row['DrugBank ID']}"
+            drug.domainIds = [f"drugbank.{row['DrugBank ID']}"]
             drug.displayName = row["Common name"]
             drug.casNumber = row["CAS"]
+            if drug.primaryDomainId == "drugbank.DB15661":
+                print(drug)
             yield drug
 
 

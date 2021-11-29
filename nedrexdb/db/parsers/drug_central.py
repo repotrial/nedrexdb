@@ -12,6 +12,7 @@ from typing import Optional as _Optional
 import docker as _docker
 import pandas as _pd
 from more_itertools import chunked as _chunked
+from pymongo import UpdateOne as _UpdateOne
 from sqlalchemy import create_engine as _create_engine
 from tqdm import tqdm as _tqdm
 
@@ -218,7 +219,7 @@ def _drug_central_xref_updates(dc_to_db_map: dict[str, list[str]], nedrex_drugs:
             if pid not in nedrex_drugs:
                 continue
 
-            yield Drug(primaryDomainId=pid, domainIds=[f"drug_central.{drug_central_id}"])
+            yield _UpdateOne({"primaryDomainId": pid}, {"$addToSet": {"domainIds": f"drug_central.{drug_central_id}"}})
 
 
 def parse_drug_central():
@@ -235,7 +236,7 @@ def parse_drug_central():
         for chunk in _tqdm(_chunked(updates, 1_000), leave=False, desc="Parsing Drug Central targets"):
             MongoInstance.DB[DrugHasTarget.collection_name].bulk_write(chunk)
 
-        updates = (drug.generate_update() for drug in _drug_central_xref_updates(dc_to_db_map, nedrex_drugs))
+        updates = (update for update in _drug_central_xref_updates(dc_to_db_map, nedrex_drugs))
         for chunk in _tqdm(_chunked(updates, 1_000), leave=False, desc="Parsing Drug Central ID mapping file"):
             MongoInstance.DB[Drug.collection_name].bulk_write(chunk)
 

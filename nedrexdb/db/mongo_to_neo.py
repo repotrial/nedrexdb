@@ -34,13 +34,14 @@ def determine_series_type(series_main):
         # is the item a container?
         if isinstance(item, list):
             q = set(type(i) for i in item)
-            assert len(q) == 1
             s.add(f"{_TYPE_MAP[q.pop()]}[]")
         else:
             s.add(_TYPE_MAP[type(item)])
 
-    assert len(s) == 1
-    return s.pop()
+    if len(s) == 1:
+        return s.pop()
+    else:
+        return False
 
 
 def mongo_to_neo(nedrex_instance, db):
@@ -68,10 +69,12 @@ def mongo_to_neo(nedrex_instance, db):
                 df = df.rename(columns={col: ":LABEL"})
             else:
                 data_type = determine_series_type(df[col])
-                if data_type.endswith("[]"):
-                    df[col] = df[col].apply(delimiter.join)
-
-                df = df.rename(columns={col: f"{col}:{data_type}"})
+                if data_type is False:
+                    df.drop(columns=[col], inplace=True)
+                else:
+                    if data_type.endswith("[]"):
+                        df[col] = df[col].apply(delimiter.join)
+                    df = df.rename(columns={col: f"{col}:{data_type}"})
 
         df.to_csv(f"{workdir}/{node}.csv", index=False)
 
@@ -94,12 +97,16 @@ def mongo_to_neo(nedrex_instance, db):
                 df = df.rename(columns={col: ":TYPE"})
             else:
                 data_type = determine_series_type(df[col])
-                if data_type.endswith("[]"):
-                    df[col] = df[col].apply(delimiter.join)
+                if data_type is False:
+                    df.drop(columns=[col], inplace=True)
+                else:
+                    if data_type.endswith("[]"):
+                        df[col] = df[col].apply(delimiter.join)
 
-                df = df.rename(columns={col: f"{col}:{data_type}"})
+                    df = df.rename(columns={col: f"{col}:{data_type}"})
 
         cols = list(df.columns)
+        print(edge)
         cols.remove(":TYPE")
         cols.append(":TYPE")
         df.to_csv(f"{workdir}/{edge}.csv", columns=cols, index=False)

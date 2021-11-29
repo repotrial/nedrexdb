@@ -9,8 +9,10 @@ from more_itertools import chunked as _chunked
 from tqdm import tqdm as _tqdm
 
 from nedrexdb.db import MongoInstance
+from nedrexdb.db.models.edges.variant_affects_gene import VariantAffectsGene
 from nedrexdb.db.models.edges.variant_associated_with_disorder import VariantAssociatedWithDisorder
 from nedrexdb.db.models.nodes.disorder import Disorder
+from nedrexdb.db.models.nodes.gene import Gene
 from nedrexdb.db.models.nodes.genomic_variant import GenomicVariant
 from nedrexdb.db.parsers import _get_file_location_factory
 
@@ -190,9 +192,14 @@ class ClinVarRow:
 
     @property
     def associated_genes(self):
-        return [f"entrez.{entrez_id}" for _, entrez_id in [i.split(":") for i in self._row["INFO"].get("GENEINFO", [])]]
+        gene_info = self._row["INFO"].get("GENEINFO")
+        if not gene_info:
+            return []
 
-    def parse(self):
+        gene_info = [info.split(":")[1] for info in gene_info.split("|")]
+        return [f"entrez.{entrez_id}" for entrez_id in gene_info]
+
+    def parse_variant(self):
         return GenomicVariant(
             primaryDomainId=self.identifier,
             domainIds=[self.identifier] + self.get_rs(),
@@ -202,14 +209,30 @@ class ClinVarRow:
             alternativeSequence=self.alternative,
         )
 
+    def parse_variant_gene_relationships(self):
+        for gene in self.associated_genes:
+            yield VariantAffectsGene(sourceDomainId=self.identifier, targetDomainId=gene)
+
 
 def parse():
     fname = get_file_location("human_data")
     parser = ClinVarVCFParser(fname)
 
-    # updates = (ClinVarRow(i).parse().generate_update() for i in parser.iter_rows())
+    # updates = (ClinVarRow(i).parse_variant().generate_update() for i in parser.iter_rows())
     # for chunk in _tqdm(_chunked(updates, 1_000), desc="Parsing ClinVar genomic variants", leave=False):
     #     MongoInstance.DB[GenomicVariant.collection_name].bulk_write(chunk)
+
+    def iter_variant_gene_relationships():
+        for row in parser.iter_rows():
+            yield from ClinVarRow(row).parse_variant_gene_relationships()
+
+    gene_ids = {doc["primaryDomainId"] for doc in Gene.find(MongoInstance.DB)}
+
+    updates = (vgr.generate_update() for vgr in iter_variant_gene_relationships() if vgr.targetDomainId in gene_ids)
+    for chunk in _tqdm(
+        _chunked(updates, 1_000), desc="Parsing ClinVar genomic variant-gene relationships", leave=False
+    ):
+        MongoInstance.DB[VariantAffectsGene.collection_name].bulk_write(chunk)
 
     fname = get_file_location("human_data_xml")
     parser = ClinVarXMLParser(fname)
