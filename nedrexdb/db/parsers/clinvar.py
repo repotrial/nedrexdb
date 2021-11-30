@@ -191,6 +191,11 @@ class ClinVarRow:
         return self._row["ALT"]
 
     @property
+    def variant_type(self):
+        variant_type = self._row["INFO"].get("CLNVC")
+        return variant_type.replace("_", " ").title()
+
+    @property
     def associated_genes(self):
         gene_info = self._row["INFO"].get("GENEINFO")
         if not gene_info:
@@ -207,6 +212,7 @@ class ClinVarRow:
             position=self.position,
             referenceSequence=self.reference,
             alternativeSequence=self.alternative,
+            variantType=self.variant_type,
         )
 
     def parse_variant_gene_relationships(self):

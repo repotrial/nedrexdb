@@ -28,6 +28,7 @@ class GenomicVariant(_BaseModel, GenomicVariantBase):
 
     referenceSequence: str = ""
     alternativeSequence: str = ""
+    variantType: str = ""
 
     def generate_update(self):
         tnow = _datetime.datetime.utcnow()
@@ -41,6 +42,7 @@ class GenomicVariant(_BaseModel, GenomicVariantBase):
                 "position": self.position,
                 "referenceSequence": self.referenceSequence,
                 "alternativeSequence": self.alternativeSequence,
+                "variantType": self.variantType,
             },
             "$setOnInsert": {
                 "created": tnow,
