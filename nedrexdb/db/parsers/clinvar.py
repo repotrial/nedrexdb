@@ -170,7 +170,7 @@ class ClinVarRow:
 
     def get_rs(self):
         if self._row["INFO"].get("RS"):
-            return [f"dbsnp.{self._row['INFO']['RS']}"]
+            return [f"dbsnp.{i}" for i in self._row["INFO"]["RS"].split("|")]
         else:
             return []
 
