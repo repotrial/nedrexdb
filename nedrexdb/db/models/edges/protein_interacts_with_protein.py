@@ -28,6 +28,12 @@ class ProteinInteractsWithProtein(_BaseModel, ProteinInteractsWithProteinBase):
     methods: list[str] = []
     databases: list[str] = []
 
+    developmentStages: list[str] = []
+    tissues: list[str] = []
+    jointTissues: list[str] = []
+    brainTissues: list[str] = []
+    subcellularLocations: list[str] = []
+
     def generate_update(self):
         tnow = _datetime.datetime.utcnow()
 
@@ -47,6 +53,11 @@ class ProteinInteractsWithProtein(_BaseModel, ProteinInteractsWithProteinBase):
                 "methods": {"$each": self.methods},
                 "assertedBy": {"$each": self.databases},
                 "evidenceTypes": {"$each": self.evidenceTypes},
+                "developmentStages": {"$each": self.developmentStages},
+                "tissues": {"$each": self.tissues},
+                "jointTissues": {"$each": self.jointTissues},
+                "brainTissues": {"$each": self.brainTissues},
+                "subcellularLocations": {"$each": self.subcellularLocations},
             },
         }
 
