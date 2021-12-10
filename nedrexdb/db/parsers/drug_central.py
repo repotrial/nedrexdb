@@ -148,8 +148,17 @@ class DrugCentralContainer:
             uniprot_accessions = [i.strip() for i in row["accession"].split("|") if i.strip()]
             uniprot_accessions = [f"uniprot.{i}" for i in uniprot_accessions]
             uniprot_accessions = [i for i in uniprot_accessions if i in nedrex_proteins]
+
+            tags = []
+            if _pd.isna(row["moa"]):
+                pass
+            elif row["moa"] == 1.0:
+                tags.append("DC-MoA")
+            else:
+                raise Exception("unexpected value for moa in drug_central")
+
             for drug, prot in _product(drugs, uniprot_accessions):
-                yield DrugHasTarget(sourceDomainId=drug, targetDomainId=prot, databases=["DrugCentral"])
+                yield DrugHasTarget(sourceDomainId=drug, targetDomainId=prot, databases=["DrugCentral"], tags=tags)
 
     def iter_indications(self, dc_to_db_map, snomed_to_nedrex_map, nedrex_drugs):
         df = _pd.read_sql_query('select * from "omop_relationship"', con=self.engine)

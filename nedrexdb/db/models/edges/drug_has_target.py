@@ -26,6 +26,8 @@ class DrugHasTarget(_BaseModel, DrugHastargetBase):
     actions: list[str] = []
     # TODO: Decide semantics for this field in NeDRexDB.
     databases: list[str] = []
+    # TODO: Decide whether to keep this field in NeDRexDB.
+    tags: list[str] = []
 
     def generate_update(self):
         tnow = _datetime.datetime.utcnow()
@@ -39,6 +41,7 @@ class DrugHasTarget(_BaseModel, DrugHastargetBase):
             "$addToSet": {
                 "actions": {"$each": self.actions},
                 "databases": {"$each": self.databases},
+                "tags": {"$each": self.tags},
             },
             "$set": {"updated": tnow, "type": self.edge_type},
         }
