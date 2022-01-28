@@ -28,7 +28,7 @@ class GeneExpressedInTissue(_BaseModel, GeneExpressedInTissueBase):
     nTPM: _Optional[float] = None
     pTPM: _Optional[float] = None
 
-    def query_update(self):
+    def generate_update(self):
         tnow = _datetime.datetime.utcnow()
 
         query = {

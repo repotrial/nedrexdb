@@ -3,7 +3,7 @@ import datetime as _datetime
 from pydantic import BaseModel as _BaseModel, Field as _Field, StrictStr as _StrictStr
 from pymongo import UpdateOne as _UpdateOne
 
-from nedrex.db import models
+from nedrexdb.db import models
 
 
 class TissueBase(models.MongoMixin):

@@ -12,6 +12,7 @@ from nedrexdb.db.models.nodes import (
     phenotype as _phenotype,
     protein as _protein,
     go as _go,
+    tissue as _tissue,
 )
 from nedrexdb.db.models.edges import (
     disorder_has_phenotype as _disorder_has_phenotype,
@@ -20,7 +21,9 @@ from nedrexdb.db.models.edges import (
     drug_has_indication as _drug_has_indication,
     drug_has_target as _drug_has_target,
     gene_associated_with_disorder as _gene_associated_with_disorder,
+    gene_expressed_in_tissue as _gene_expressed_in_tissue,
     protein_encoded_by_gene as _protein_encoded_by_gene,
+    protein_expressed_in_tissue as _protein_expressed_in_tissue,
     protein_in_pathway as _protein_in_pathway,
     protein_interacts_with_protein as _protein_interacts_with_protein,
     go_is_subtype_of_go as _go_is_subtype_of_go,
@@ -59,6 +62,7 @@ class MongoInstance:
         _pathway.Pathway.set_indexes(cls.DB)
         _phenotype.Phenotype.set_indexes(cls.DB)
         _protein.Protein.set_indexes(cls.DB)
+        _tissue.Tissue.set_indexes(cls.DB)
         _go.GO.set_indexes(cls.DB)
         # Edges
         _disorder_has_phenotype.DisorderHasPhenotype.set_indexes(cls.DB)
@@ -67,9 +71,11 @@ class MongoInstance:
         _drug_has_indication.DrugHasIndication.set_indexes(cls.DB)
         _drug_has_target.DrugHasTarget.set_indexes(cls.DB)
         _gene_associated_with_disorder.GeneAssociatedWithDisorder.set_indexes(cls.DB)
+        _gene_expressed_in_tissue.GeneExpressedInTissue.set_indexes(cls.DB)
         _protein_encoded_by_gene.ProteinEncodedByGene.set_indexes(cls.DB)
+        _protein_expressed_in_tissue.ProteinExpressedInTissue.set_indexes(cls.DB)
         _protein_in_pathway.ProteinInPathway.set_indexes(cls.DB)
-        _protein_interacts_with_protein.ProteinInteractsWithProtein.set_indexes(cls.DB),
+        _protein_interacts_with_protein.ProteinInteractsWithProtein.set_indexes(cls.DB)
         _go_is_subtype_of_go.GOIsSubtypeOfGOBase.set_indexes(cls.DB)
         _protein_has_go_annotation.ProteinHasGOAnnotation.set_indexes(cls.DB)
         _variant_affects_gene.VariantAffectsGene.set_indexes(cls.DB)
