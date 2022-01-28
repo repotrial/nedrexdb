@@ -44,6 +44,7 @@ def download_all(force=False):
         # Catch case to skip sources with bespoke downloaders.
         if source in {
             "biogrid",
+            "drugbank",
         }:
             continue
         (download_dir / source).mkdir(exist_ok=True)

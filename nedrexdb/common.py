@@ -1,4 +1,5 @@
 import os
+import time
 from contextlib import contextmanager
 from pathlib import Path as _Path
 from typing import Optional as _Optional
@@ -33,6 +34,17 @@ class Downloader(_BaseModel):
             raise ValueError(f"url {v!r} is not http(s)")
 
     def download(self):
+        for _ in range(3):
+            try:
+                self._download()
+            except _requests.ConnectionError:
+                _logger.warning(f"failed to download {self.url!r}")
+                time.sleep(10)
+            else:
+                return
+        _logger.critical(f"failed to download {self.url!r} three times, aborting!")
+
+    def _download(self):
         if self.username is None and self.password is None:
             auth = None
         elif self.username is not None and self.password is not None:
