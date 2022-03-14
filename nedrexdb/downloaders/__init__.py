@@ -56,6 +56,8 @@ def download_all(force=False):
         for _, download in filter(lambda i: i[0] not in exclude_keys, data.items()):
             url = download.get("url")
             filename = download.get("filename")
+            if url is None:
+                continue
             if filename is None:
                 filename = url.rsplit("/", 1)[1]
 

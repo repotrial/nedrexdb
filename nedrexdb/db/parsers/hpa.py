@@ -162,12 +162,13 @@ def parse_hpa():
             for item in chain(*gene_expression)
             if item.sourceDomainId in genes and item.targetDomainId in tissues
         ]
-
-        MongoInstance.DB[GeneExpressedInTissue.collection_name].bulk_write(gene_expression)
+        if gene_expression:
+            MongoInstance.DB[GeneExpressedInTissue.collection_name].bulk_write(gene_expression)
 
         protein_expression = [
             item.generate_update()
             for item in chain(*protein_expression)
             if item.sourceDomainId in proteins and item.targetDomainId in tissues
         ]
-        MongoInstance.DB[ProteinExpressedInTissue.collection_name].bulk_write(protein_expression)
+        if protein_expression:
+            MongoInstance.DB[ProteinExpressedInTissue.collection_name].bulk_write(protein_expression)

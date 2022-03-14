@@ -19,7 +19,7 @@ class GeneInfoRow:
     def parse(self) -> Gene:
         g = Gene()
         g.primaryDomainId = self.get_primary_id()
-        g.domainIds = [g.primaryDomainId]
+        g.domainIds = [g.primaryDomainId] + self.get_ensembl_xrefs()
 
         g.approvedSymbol = self.get_approved_symbol()
         if g.approvedSymbol:
@@ -38,6 +38,12 @@ class GeneInfoRow:
 
     def get_primary_id(self) -> str:
         return f"entrez.{self._row['GeneID']}"
+
+    def get_ensembl_xrefs(self) -> list[str]:
+        ensembl_xrefs = [
+            f'ensembl.{i.replace("Ensembl:", "")}' for i in self._row["dbXrefs"].split("|") if i.startswith("Ensembl:")
+        ]
+        return ensembl_xrefs
 
     def get_approved_symbol(self) -> _Optional[str]:
         approved_symbol = self._row["Symbol_from_nomenclature_authority"].strip()

@@ -12,6 +12,7 @@ from nedrexdb.db.models.nodes import (
     phenotype as _phenotype,
     protein as _protein,
     go as _go,
+    side_effect as _side_effect,
     tissue as _tissue,
 )
 from nedrexdb.db.models.edges import (
@@ -20,6 +21,7 @@ from nedrexdb.db.models.edges import (
     drug_has_contraindication as _drug_has_contraindication,
     drug_has_indication as _drug_has_indication,
     drug_has_target as _drug_has_target,
+    drug_has_side_effect as _drug_has_side_effect,
     gene_associated_with_disorder as _gene_associated_with_disorder,
     gene_expressed_in_tissue as _gene_expressed_in_tissue,
     protein_encoded_by_gene as _protein_encoded_by_gene,
@@ -28,6 +30,7 @@ from nedrexdb.db.models.edges import (
     protein_interacts_with_protein as _protein_interacts_with_protein,
     go_is_subtype_of_go as _go_is_subtype_of_go,
     protein_has_go_annotation as _protein_has_go_annotation,
+    side_effect_same_as_phenotype as _side_effect_same_as_phenotype,
     variant_affects_gene as _variant_affects_gene,
     variant_associated_with_disorder as _variant_associated_with_disorder,
 )
@@ -63,6 +66,7 @@ class MongoInstance:
         _phenotype.Phenotype.set_indexes(cls.DB)
         _protein.Protein.set_indexes(cls.DB)
         _tissue.Tissue.set_indexes(cls.DB)
+        _side_effect.SideEffect.set_indexes(cls.DB)
         _go.GO.set_indexes(cls.DB)
         # Edges
         _disorder_has_phenotype.DisorderHasPhenotype.set_indexes(cls.DB)
@@ -70,6 +74,7 @@ class MongoInstance:
         _drug_has_contraindication.DrugHasContraindication.set_indexes(cls.DB)
         _drug_has_indication.DrugHasIndication.set_indexes(cls.DB)
         _drug_has_target.DrugHasTarget.set_indexes(cls.DB)
+        _drug_has_side_effect.DrugHasSideEffect.set_indexes(cls.DB)
         _gene_associated_with_disorder.GeneAssociatedWithDisorder.set_indexes(cls.DB)
         _gene_expressed_in_tissue.GeneExpressedInTissue.set_indexes(cls.DB)
         _protein_encoded_by_gene.ProteinEncodedByGene.set_indexes(cls.DB)
@@ -78,5 +83,6 @@ class MongoInstance:
         _protein_interacts_with_protein.ProteinInteractsWithProtein.set_indexes(cls.DB)
         _go_is_subtype_of_go.GOIsSubtypeOfGOBase.set_indexes(cls.DB)
         _protein_has_go_annotation.ProteinHasGOAnnotation.set_indexes(cls.DB)
+        _side_effect_same_as_phenotype.SideEffectSameAsPhenotype.set_indexes(cls.DB)
         _variant_affects_gene.VariantAffectsGene.set_indexes(cls.DB)
         _variant_associated_with_disorder.VariantAssociatedWithDisorder.set_indexes(cls.DB)
