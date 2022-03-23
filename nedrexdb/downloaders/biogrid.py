@@ -47,6 +47,11 @@ def download_biogrid():
     biogrid_dir.mkdir(exist_ok=True, parents=True)
 
     with _cd(biogrid_dir):
+        # NOTE: we have to remove the old file first, otherwise we get a bug where it gets deleted
+        #       (because iterdir() will delete it).
+        if _os.path.isfile(target_fname):
+            _os.remove(target_fname)
+
         logger.debug("Downloading BioGRID v%s" % version)
         _urlretrieve(url, zip_fname)
         _subprocess.call(

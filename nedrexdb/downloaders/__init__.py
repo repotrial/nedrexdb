@@ -38,6 +38,9 @@ def download_all(force=False):
 
     metadata = {"source_databases": {}}
 
+    metadata["source_databases"]["biogrid"] = {"date": f"{_datetime.datetime.now().date()}", "version": None}
+    _download_biogrid()
+
     for source in filter(lambda i: i not in exclude_keys, sources):
         metadata["source_databases"][source] = {"date": f"{_datetime.datetime.now().date()}", "version": None}
 
@@ -68,9 +71,6 @@ def download_all(force=False):
                 password=password,
             )
             d.download()
-
-    metadata["source_databases"]["biogrid"] = {"date": f"{_datetime.datetime.now().date()}", "version": None}
-    _download_biogrid()
 
     docs = list(MongoInstance.DB["metadata"].find())
     if len(docs) == 1:

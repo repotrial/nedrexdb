@@ -98,7 +98,7 @@ class HPOARow:
         if disorder.startswith("OMIM"):
             d = disorder.replace("OMIM:", "omim.")
         elif disorder.startswith("ORPHA"):
-            d = disorder.replace("ORPHA", "orpha.")
+            d = disorder.replace("ORPHA:", "orpha.")
         elif disorder.startswith("DECIPHER"):
             return []
         else:
