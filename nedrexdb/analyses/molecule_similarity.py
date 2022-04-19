@@ -60,7 +60,7 @@ def find_similar_compounds_morgan(parsable_drugs) -> None:
                     "$set": {
                         "updated": tnow,
                     },
-                    "$setOnInsert": {"created": tnow},
+                    "$setOnInsert": {"created": tnow, "type": "MoleculeSimilarityMolecule"},
                 },
                 upsert=True,
             )
@@ -92,7 +92,7 @@ def find_similar_compounds_maccs(parsable_drugs) -> None:
                     "$set": {
                         "updated": tnow,
                     },
-                    "$setOnInsert": {"created": tnow},
+                    "$setOnInsert": {"created": tnow, "type": "MoleculeSimilarityMolecule"},
                 },
                 upsert=True,
             )
