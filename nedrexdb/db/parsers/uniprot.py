@@ -9,6 +9,7 @@ from csv import (
 
 from Bio import SeqIO as _SeqIO, SeqRecord as _SeqRecord
 from more_itertools import chunked as _chunked
+from pymongo import UpdateOne
 from tqdm import tqdm as _tqdm
 
 from nedrexdb.db import MongoInstance
@@ -177,6 +178,7 @@ def parse_idmap():
     gene_ids = {doc["primaryDomainId"] for doc in Gene.find(MongoInstance.DB)}
     protein_ids = {doc["primaryDomainId"] for doc in Protein.find(MongoInstance.DB)}
 
+    # Pass one to get the relationships between NCBI genes and UniProt proteins
     with _gzip.open(filename, "rt") as f:
         filtered_f = filter(lambda row: row[0] != comment_char, f)
         reader = _DictReader(filtered_f, delimiter=delimiter, fieldnames=fieldnames)
@@ -194,7 +196,24 @@ def parse_idmap():
         updates = (pebg.generate_update() for pebg in record_gen())
         for chunk in _tqdm(
             _chunked(updates, 1_000),
-            desc="Parsing UniProt ID map",
+            desc="Parsing UniProt ID map (NCBI relationships)",
             leave=False,
         ):
             MongoInstance.DB[ProteinEncodedByGene.collection_name].bulk_write(chunk)
+
+    # Pass two to add the ENSEMBL protein IDs
+    with _gzip.open(filename, "rt") as f:
+        filtered_f = filter(lambda row: row[0] != comment_char, f)
+        reader = _DictReader(filtered_f, delimiter=delimiter, fieldnames=fieldnames)
+
+        def update_gen():
+            for row in reader:
+                pdid = f"uniprot.{row['UniProtKB-AC']}"
+                ensembl_ids = [f"ensembl.{i.strip()}" for i in row["Ensembl_PRO"].split(";") if i.strip()]
+                for ensembl_id in ensembl_ids:
+                    yield UpdateOne({"primaryDomainId": pdid}, {"$addToSet": {"domainIds": ensembl_id}}, upsert=False)
+
+        for chunk in _tqdm(
+            _chunked(update_gen(), 1_000), desc="Parsing UniProt ID map (ENSEMBL relationships)", leave=False
+        ):
+            MongoInstance.DB[Protein.collection_name].bulk_write(chunk)
