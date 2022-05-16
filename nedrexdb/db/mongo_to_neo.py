@@ -48,6 +48,10 @@ def mongo_to_neo(nedrex_instance, db):
     nodes = _config["api.node_collections"]
     edges = _config["api.edge_collections"]
 
+    # This is a debug statement for builds with fewer collections.
+    # nodes = [node for node in nodes if sum(1 for _ in db[node].find())]
+    # edges = [edge for edge in edges if sum(1 for _ in db[edge].find())]
+
     delimiter = "|"
 
     workdir = _Path("/tmp")
@@ -114,6 +118,8 @@ def mongo_to_neo(nedrex_instance, db):
     command = [
         "docker",
         "exec",
+        "-u",
+        "neo4j",
         nedrex_instance.neo4j_container_name,
         "neo4j-admin",
         "import",

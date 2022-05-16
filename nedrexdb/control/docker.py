@@ -159,7 +159,7 @@ class _NeDRexBaseInstance(_NeDRexInstance):
             kwargs["entrypoint"] = "/bin/bash"
 
         elif neo4j_mode == "db":
-            pass
+            kwargs["environment"]["NEO4J_dbms_read__only"] = "true"
         else:
             raise Exception(f"neo4j_mode {neo4j_mode!r} is invalid")
 
