@@ -110,7 +110,6 @@ def mongo_to_neo(nedrex_instance, db):
                     df = df.rename(columns={col: f"{col}:{data_type}"})
 
         cols = list(df.columns)
-        print(edge)
         cols.remove(":TYPE")
         cols.append(":TYPE")
         df.to_csv(f"{workdir}/{edge}.csv", columns=cols, index=False)

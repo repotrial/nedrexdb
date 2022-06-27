@@ -26,7 +26,11 @@ def decompress_if_necessary():
     target = path.parents[0] / path.name.rsplit(".", 2)[0]
     if target.exists():
         return target
-    _sp.call(["tar", "-zxvf", f"{path}"], cwd=f"{path.parents[0]}")
+
+    target.mkdir(parents=True)
+    _sp.call(
+        ["tar", "-zxvf", f"{path}", "-C", f"{target.resolve()}", "--strip-components", "1"], cwd=f"{path.parents[0]}"
+    )
 
     return target
 
@@ -35,7 +39,7 @@ def parse_chembl():
     cd_map = get_chembl_drugbank_map()
 
     path = decompress_if_necessary()
-    db = [i for i in path.iterdir() if i.name.endswith(".db")][0]
+    db = [i for i in path.rglob("*") if i.name.endswith(".db")][0]
     con = sqlite3.connect(f"{db}")
     cur = con.cursor()
 
@@ -47,5 +51,5 @@ def parse_chembl():
 
         if max_phase == 4:
             query = {"primaryDomainId": f"drugbank.{drugbank_id}"}
-            update = {"$addToSet": {"drugGroups": "approved"}}
+            update = {"$addToSet": {"drugGroups": "approved", "allDatasets": "chembl"}}
             MongoInstance.DB[Drug.collection_name].update_one(query, update)

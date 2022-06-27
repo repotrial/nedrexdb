@@ -1,4 +1,5 @@
 import os
+import subprocess
 import time
 from contextlib import contextmanager
 from pathlib import Path as _Path
@@ -53,9 +54,22 @@ class Downloader(_BaseModel):
             raise ValueError("either both or none of 'username' and 'password' must be set")
 
         _logger.info("Downloading %s" % self.url)
-        with _requests.get(self.url, stream=True, auth=auth) as response:
-            response.raise_for_status()
 
-            with self.target.open(mode="wb") as f:
-                for chunk in _tqdm(response.iter_content(chunk_size=8_192), leave=False):
-                    f.write(chunk)
+        if auth:
+            with _requests.get(self.url, stream=True, auth=auth) as response:
+                response.raise_for_status()
+
+                with self.target.open(mode="wb") as f:
+                    for chunk in _tqdm(response.iter_content(chunk_size=8_192), leave=False):
+                        f.write(chunk)
+        else:
+            subprocess.call(
+                (
+                    "wget",
+                    "--read-timeout",
+                    "10",
+                    "-O",
+                    f"{self.target.resolve()}",
+                    self.url,
+                )
+            )

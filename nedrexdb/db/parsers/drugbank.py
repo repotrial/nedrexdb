@@ -283,8 +283,6 @@ def parse_drugbank_open():
             drug.domainIds = [f"drugbank.{row['DrugBank ID']}"]
             drug.displayName = row["Common name"]
             drug.casNumber = row["CAS"]
-            if drug.primaryDomainId == "drugbank.DB15661":
-                print(drug)
             yield drug
 
 

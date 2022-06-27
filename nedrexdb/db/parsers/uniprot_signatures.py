@@ -62,6 +62,7 @@ class Signature:
             {"primaryDomainId": self.domain_id},
             {
                 "$set": {
+                    "domainIds": [self.domain_id],
                     "database": self.database,
                     "displayName": self.display_name,
                     "updated": timestamp,

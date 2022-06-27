@@ -15,6 +15,7 @@ from nedrexdb.db.models.nodes.disorder import Disorder
 from nedrexdb.db.models.nodes.gene import Gene
 from nedrexdb.db.models.nodes.genomic_variant import GenomicVariant
 from nedrexdb.db.parsers import _get_file_location_factory
+from nedrexdb.logger import logger
 
 get_file_location = _get_file_location_factory("clinvar")
 
@@ -31,7 +32,7 @@ def xml_disorder_mapper(id, db):
     elif db in {"Human Phenotype Ontology", "EFO", "Gene", "MedGen"}:
         return None
     else:
-        print(db)
+        logger.warning(f"database given without handler: {db!r}")
 
 
 def disorder_domain_id_to_primary_id_map():
