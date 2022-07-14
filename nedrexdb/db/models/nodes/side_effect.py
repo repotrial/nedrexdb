@@ -24,6 +24,8 @@ class SideEffect(_BaseModel, SideEffectBase):
     domainIds: list[str] = _Field(default_factory=list)
     displayName: _StrictStr = ""
 
+    dataSources: list[str] = _Field(default_factory=list)
+
     def generate_update(self):
         tnow = _datetime.datetime.utcnow()
 
@@ -31,6 +33,7 @@ class SideEffect(_BaseModel, SideEffectBase):
         update = {
             "$addToSet": {
                 "domainIds": {"$each": self.domainIds},
+                "dataSources": {"$each": self.dataSources},
             },
             "$set": {"displayName": self.displayName, "updated": tnow},
             "$setOnInsert": {"created": tnow, "type": self.node_type},

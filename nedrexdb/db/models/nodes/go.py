@@ -24,12 +24,18 @@ class GO(_BaseModel, GOBase):
     synonyms: list[str] = _Field(default_factory=list)
     description: _StrictStr = ""
 
+    dataSources: list[str] = _Field(default_factory=list)
+
     def generate_update(self):
         tnow = _datetime.datetime.utcnow()
 
         query = {"primaryDomainId": self.primaryDomainId}
         update = {
-            "$addToSet": {"domainIds": {"$each": self.domainIds}, "synonyms": {"$each": self.synonyms}},
+            "$addToSet": {
+                "domainIds": {"$each": self.domainIds},
+                "synonyms": {"$each": self.synonyms},
+                "dataSources": {"$each": self.dataSources},
+            },
             "$set": {
                 "displayName": self.displayName,
                 "description": self.description,

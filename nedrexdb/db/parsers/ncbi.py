@@ -33,6 +33,7 @@ class GeneInfoRow:
         g.mapLocation = self.get_location()
         g.geneType = self.get_gene_type()
         g.synonyms = self.get_synonyms()
+        g.dataSources = ["ncbi"]
 
         return g
 

@@ -24,6 +24,7 @@ class ProteinHasGOAnnotation(_BaseModel, ProteinHasGOAnnotationBase):
     sourceDomainId: _StrictStr = ""
     targetDomainId: _StrictStr = ""
     qualifiers: list[str] = _Field(default_factory=list)
+    dataSources: list[str] = _Field(default_factory=list)
 
     def generate_update(self):
         tnow = _datetime.datetime.utcnow()
@@ -35,7 +36,7 @@ class ProteinHasGOAnnotation(_BaseModel, ProteinHasGOAnnotationBase):
                 "type": self.edge_type,
             },
             "$set": {"updated": tnow},
-            "$addToSet": {"qualifiers": {"$each": self.qualifiers}},
+            "$addToSet": {"qualifiers": {"$each": self.qualifiers}, "dataSources": {"$each": self.dataSources}},
         }
 
         return _UpdateOne(query, update, upsert=True)

@@ -119,6 +119,7 @@ class ClinVarXMLParser:
                                 accession=acc,
                                 effects=effects,
                                 reviewStatus=review_status,
+                                dataSources=["clinvar"],
                             )
 
                             yield vawd
@@ -214,11 +215,12 @@ class ClinVarRow:
             referenceSequence=self.reference,
             alternativeSequence=self.alternative,
             variantType=self.variant_type,
+            dataSources=["clinvar"],
         )
 
     def parse_variant_gene_relationships(self):
         for gene in self.associated_genes:
-            yield VariantAffectsGene(sourceDomainId=self.identifier, targetDomainId=gene)
+            yield VariantAffectsGene(sourceDomainId=self.identifier, targetDomainId=gene, dataSources=["clinvar"])
 
 
 def parse():

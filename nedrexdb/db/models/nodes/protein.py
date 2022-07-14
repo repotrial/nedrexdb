@@ -36,6 +36,8 @@ class Protein(_BaseModel, ProteinBase):
     taxid: int = -1
     sequence: _StrictStr = ""
 
+    dataSources: list[str] = _Field(default_factory=list)
+
     def generate_update(self):
         tnow = _datetime.datetime.utcnow()
 
@@ -44,6 +46,7 @@ class Protein(_BaseModel, ProteinBase):
             "$addToSet": {
                 "domainIds": {"$each": self.domainIds},
                 "synonyms": {"$each": self.synonyms},
+                "dataSources": {"$each": self.dataSources},
             },
             "$set": {
                 "displayName": self.displayName,

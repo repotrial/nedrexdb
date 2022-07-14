@@ -21,6 +21,7 @@ def parse():
             primaryDomainId=f"uberon.{node['id'].replace('http://purl.obolibrary.org/obo/UBERON_', '')}",
             domainIds=[f"uberon.{node['id'].replace('http://purl.obolibrary.org/obo/UBERON_', '')}"],
             displayName=node.get("lbl", ""),
+            dataSources=["uberon"],
         ).generate_update()
         for node in uberon_nodes
     )

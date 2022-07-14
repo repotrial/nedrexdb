@@ -25,7 +25,7 @@ class DrugHasSideEffect(_BaseModel, DrugHasSideEffectBase):
     targetDomainId: _StrictStr = ""
     maximum_frequency: float = -1
     minimum_frequency: float = 100
-    assertedBy: list[str] = _Field(default_factory=list)
+    dataSources: list[str] = _Field(default_factory=list)
 
     def generate_update(self):
         tnow = _datetime.datetime.utcnow()
@@ -46,7 +46,7 @@ class DrugHasSideEffect(_BaseModel, DrugHasSideEffectBase):
             "$max": {"maximum_frequency": self.maximum_frequency},
             "$min": {"minimum_frequency": self.minimum_frequency},
             "$addToSet": {
-                "assertedBy": {"$each": self.assertedBy},
+                "dataSources": {"$each": self.dataSources},
             },
         }
 

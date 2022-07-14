@@ -45,18 +45,17 @@ def determine_series_type(series_main):
 
 
 def mongo_to_neo(nedrex_instance, db):
-    nodes = _config["api.node_collections"]
-    edges = _config["api.edge_collections"]
+    collections = db.list_collection_names()
 
-    # This is a debug statement for builds with fewer collections.
-    # nodes = [node for node in nodes if sum(1 for _ in db[node].find())]
-    # edges = [edge for edge in edges if sum(1 for _ in db[edge].find())]
+    nodes = [node for node in _config["api.node_collections"] if node in collections]
+    edges = [edge for edge in _config["api.edge_collections"] if edge in collections]
 
     delimiter = "|"
 
     workdir = _Path("/tmp")
 
     for node in nodes:
+        print(node)
         cursor = db[node].find()
         df = _pd.DataFrame(flatten(i) for i in cursor)
         # replace NaN with empty strings
@@ -83,6 +82,7 @@ def mongo_to_neo(nedrex_instance, db):
         df.to_csv(f"{workdir}/{node}.csv", index=False)
 
     for edge in edges:
+        print(edge)
         cursor = db[edge].find()
         df = _pd.DataFrame(flatten(i) for i in cursor)
         # replace NaN with empty strings

@@ -51,5 +51,5 @@ def parse_chembl():
 
         if max_phase == 4:
             query = {"primaryDomainId": f"drugbank.{drugbank_id}"}
-            update = {"$addToSet": {"drugGroups": "approved", "allDatasets": "chembl"}}
+            update = {"$addToSet": {"drugGroups": "approved", "dataSources": "chembl"}}
             MongoInstance.DB[Drug.collection_name].update_one(query, update)

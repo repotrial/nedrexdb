@@ -55,6 +55,7 @@ class Signature:
     domain_id: str
     database: str
     display_name: str
+    dataSources: list[str]
 
     def to_update(self):
         timestamp = datetime.utcnow()
@@ -68,6 +69,7 @@ class Signature:
                     "updated": timestamp,
                 },
                 "$setOnInsert": {"created": timestamp, "type": "Signature"},
+                "$addToSet": {"dataSources": {"$each": self.dataSources}},
             },
             upsert=True,
         )
@@ -102,7 +104,7 @@ class SwissRecordParser:
             if not desc or desc == "-":
                 desc = None
 
-            sig = Signature(f"{db.lower()}.{acc}", db, desc)
+            sig = Signature(f"{db.lower()}.{acc}", db, desc, dataSources=["uniprot"])
             signatures.append(sig)
 
         return signatures
@@ -113,7 +115,11 @@ def generate_protein_signature_update(protein_id, signature_id):
 
     return UpdateOne(
         {"sourceDomainId": protein_id, "targetDomainId": signature_id},
-        {"$set": {"updated": tnow}, "$setOnInsert": {"created": tnow, "type": "ProteinHasSignature"}},
+        {
+            "$set": {"updated": tnow},
+            "$setOnInsert": {"created": tnow, "type": "ProteinHasSignature"},
+            "$addToSet": {"dataSources": {"$each": ["uniprot"]}},
+        },
         upsert=True,
     )
 

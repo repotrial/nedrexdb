@@ -23,10 +23,7 @@ class Drug(_BaseModel, DrugBase):
     primaryDomainId: _StrictStr = ""
     domainIds: list[str] = _Field(default_factory=list)
 
-    # TODO: Decide whether to remove 'primaryDataset' attribute.
-    primaryDataset: _StrictStr = ""
-    # TODO: Decide standard attribute for recording datasets.
-    allDatasets: list[str] = _Field(default_factory=list)
+    dataSources: list[str] = _Field(default_factory=list)
 
     displayName: _StrictStr = ""
     synonyms: list[str] = _Field(default_factory=list)
@@ -46,6 +43,7 @@ class Drug(_BaseModel, DrugBase):
                 "synonyms": {"$each": self.synonyms},
                 "drugCategories": {"$each": self.drugCategories},
                 "drugGroups": {"$each": self.drugGroups},
+                "dataSources": {"$each": self.dataSources},
             },
             "$setOnInsert": {"created": tnow},
             "$set": {
@@ -54,7 +52,6 @@ class Drug(_BaseModel, DrugBase):
                 "description": self.description,
                 "casNumber": self.casNumber,
                 "indication": self.indication,
-                "primaryDataset": self.primaryDataset,
                 "type": "Drug",
             },
         }
@@ -75,13 +72,12 @@ class BiotechDrug(Drug):
         update = {
             "$addToSet": {
                 "domainIds": {"$each": self.domainIds},
-                "allDatasets": {"$each": self.allDatasets},
+                "dataSources": {"$each": self.dataSources},
                 "synonyms": {"$each": self.synonyms},
                 "drugCategories": {"$each": self.drugCategories},
                 "drugGroups": {"$each": self.drugGroups},
             },
             "$set": {
-                "primaryDataset": self.primaryDataset,
                 "displayName": self.displayName,
                 "description": self.description,
                 "casNumber": self.casNumber,
@@ -111,13 +107,12 @@ class SmallMoleculeDrug(Drug):
         update = {
             "$addToSet": {
                 "domainIds": {"$each": self.domainIds},
-                "allDatasets": {"$each": self.allDatasets},
+                "dataSources": {"$each": self.dataSources},
                 "synonyms": {"$each": self.synonyms},
                 "drugCategories": {"$each": self.drugCategories},
                 "drugGroups": {"$each": self.drugGroups},
             },
             "$set": {
-                "primaryDataset": self.primaryDataset,
                 "displayName": self.displayName,
                 "description": self.description,
                 "casNumber": self.casNumber,

@@ -59,6 +59,7 @@ class HPONode:
             displayName=self.display_name,
             synonyms=self.synonyms,
             description=self.description,
+            dataSources=["hpo"],
         )
 
 
@@ -113,7 +114,7 @@ class HPOARow:
 
     def parse(self):
         return [
-            DisorderHasPhenotype(sourceDomainId=source, targetDomainId=self.target_domain_id, assertedBy=["hpo"])
+            DisorderHasPhenotype(sourceDomainId=source, targetDomainId=self.target_domain_id, dataSources=["hpo"])
             for source in self.source_domain_ids
         ]
 

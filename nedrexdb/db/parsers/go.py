@@ -66,6 +66,7 @@ class GOAssociation:
             sourceDomainId=self.source_domain_id,
             targetDomainId=self.target_domain_id,
             qualifiers=self.qualifiers,
+            dataSources=["go"],
         )
 
 
@@ -122,11 +123,15 @@ class GORelations:
         go.displayName = self.display_name
         go.synonyms = self.synonyms
         go.description = self.description
+        go.dataSources = ["go"]
 
         return go
 
     def parse_go_relationships(self):
-        return [GOIsSubtypeOfGO(sourceDomainId=self.primary_id, targetDomainId=target) for target in self.is_a]
+        return [
+            GOIsSubtypeOfGO(sourceDomainId=self.primary_id, targetDomainId=target, dataSources=["go"])
+            for target in self.is_a
+        ]
 
 
 def get_go_details(g):

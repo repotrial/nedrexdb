@@ -133,6 +133,7 @@ def iter_entries():
                             TPM=rna_expr.get("TPM"),
                             nTPM=rna_expr.get("nTPM"),
                             pTPM=rna_expr.get("pTPM"),
+                            dataSources=["hpa"],
                         )
                         for tissue in rna_expr["tissue"]
                     ]
@@ -140,7 +141,9 @@ def iter_entries():
             for protein in entry.proteins:
                 for pro_expr in entry.protein_expression:
                     protein_expression += [
-                        ProteinExpressedInTissue(sourceDomainId=protein, targetDomainId=tissue, level=pro_expr["level"])
+                        ProteinExpressedInTissue(
+                            sourceDomainId=protein, targetDomainId=tissue, level=pro_expr["level"], dataSources=["hpa"]
+                        )
                         for tissue in pro_expr["tissue"]
                     ]
 

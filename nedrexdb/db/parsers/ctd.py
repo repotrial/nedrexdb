@@ -37,7 +37,7 @@ class CTDDrugChemicalRow:
         indications = []
 
         for drug, disorder in _product(self.drug_ids(casn_map), self.disorder_ids(mn_map)):
-            dhi = DrugHasIndication(sourceDomainId=drug, targetDomainId=disorder, assertedBy=["ctd"])
+            dhi = DrugHasIndication(sourceDomainId=drug, targetDomainId=disorder, dataSources=["ctd"])
             indications.append(dhi)
 
         return indications

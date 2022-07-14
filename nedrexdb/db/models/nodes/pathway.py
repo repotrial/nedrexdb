@@ -21,6 +21,7 @@ class Pathway(_BaseModel, PathwayBase):
     displayName: _StrictStr = ""
     species: _StrictStr = ""
     taxid: int = -1
+    dataSources: list[str] = _Field(default_factory=list)
 
     def generate_update(self):
         tnow = _datetime.datetime.utcnow()
@@ -29,6 +30,7 @@ class Pathway(_BaseModel, PathwayBase):
         update = {
             "$addToSet": {
                 "domainIds": {"$each": self.domainIds},
+                "dataSources": {"$each": self.dataSources},
             },
             "$set": {
                 "type": self.node_type,

@@ -41,7 +41,7 @@ class IntActRow:
         for a, b in _product(a_interactors, b_interactors):
             a, b = sorted([a, b])
 
-            yield ProteinInteractsWithProtein(memberOne=a, memberTwo=b, databases=["intact"])
+            yield ProteinInteractsWithProtein(memberOne=a, memberTwo=b, dataSources=["intact"])
 
 
 def parse_ppis():

@@ -20,7 +20,11 @@ def parse():
 
         for db, pc in tqdm(reader, leave=False):
             update = UpdateMany(
-                {"domainIds": f"drugbank.{db}"}, {"$addToSet": {"domainIds": f"pubchem.{pc}"}}, upsert=False
+                {"domainIds": f"drugbank.{db}"},
+                {
+                    "$addToSet": {"domainIds": f"pubchem.{pc}", "dataSources": "unichem"},
+                },
+                upsert=False,
             )
 
             updates.append(update)

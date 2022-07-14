@@ -22,6 +22,7 @@ class GenomicVariant(_BaseModel, GenomicVariantBase):
 
     primaryDomainId: _StrictStr = ""
     domainIds: _List[str] = _Field(default_factory=list)
+    dataSources: list[str] = _Field(default_factory=list)
 
     chromosome: str = ""
     position: int = -1
@@ -35,7 +36,7 @@ class GenomicVariant(_BaseModel, GenomicVariantBase):
 
         query = {"primaryDomainId": self.primaryDomainId}
         update = {
-            "$addToSet": {"domainIds": {"$each": self.domainIds}},
+            "$addToSet": {"domainIds": {"$each": self.domainIds}, "dataSources": {"$each": self.dataSources}},
             "$set": {
                 "updated": tnow,
                 "chromosome": self.chromosome,

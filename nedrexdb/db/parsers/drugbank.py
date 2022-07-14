@@ -70,7 +70,7 @@ class DrugBankDrugTarget:
                 sourceDomainId=drug,
                 targetDomainId=protein,
                 actions=actions,
-                databases=["DrugBank"],
+                dataSources=["drugbank"],
             )
             for protein, actions in self.iter_targets()
         ]
@@ -243,8 +243,7 @@ class DrugBankEntry:
         d.primaryDomainId = self.get_primary_domain_id()
         d.domainIds = self.get_domain_ids()
 
-        d.primaryDataset = "DrugBank"
-        d.allDatasets.append("DrugBank")
+        d.dataSources.append("drugbank")
         d.description = self.get_description()
         d.indication = self.get_indications()
 
@@ -283,6 +282,7 @@ def parse_drugbank_open():
             drug.domainIds = [f"drugbank.{row['DrugBank ID']}"]
             drug.displayName = row["Common name"]
             drug.casNumber = row["CAS"]
+            drug.dataSources = ["drugbank"]
             yield drug
 
 

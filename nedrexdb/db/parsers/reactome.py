@@ -51,6 +51,7 @@ class ReactomeRow:
             displayName=self.display_name,
             species="Homo sapiens",
             taxid=9606,
+            dataSources=["reactome"],
         )
 
         return pathway
@@ -59,7 +60,9 @@ class ReactomeRow:
         if not self.is_human:
             return None
 
-        link = ProteinInPathway(sourceDomainId=self.uniprot_id, targetDomainId=self.reactome_id)
+        link = ProteinInPathway(
+            sourceDomainId=self.uniprot_id, targetDomainId=self.reactome_id, dataSources=["reactome"]
+        )
 
         return link
 

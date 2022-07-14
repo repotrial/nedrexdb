@@ -10,3 +10,4 @@ class Signature(_Document):
     domainIds = _ListField(_StringField())
     description = _StringField()
     type = _StringField(default="Signature")
+    dataSources = _ListField(_StringField())

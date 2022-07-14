@@ -52,7 +52,7 @@ class BioGridRow:
             ppi = ProteinInteractsWithProtein(
                 memberOne=a,
                 memberTwo=b,
-                databases=["biogrid"],
+                dataSources=["biogrid"],
                 evidenceTypes=["exp"],
                 methods=[self.methods],
             )

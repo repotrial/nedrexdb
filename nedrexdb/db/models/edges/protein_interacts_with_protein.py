@@ -26,7 +26,7 @@ class ProteinInteractsWithProtein(_BaseModel, ProteinInteractsWithProteinBase):
     memberTwo: _StrictStr = ""
     evidenceTypes: list[str] = []
     methods: list[str] = []
-    databases: list[str] = []
+    dataSources: list[str] = []
 
     developmentStages: list[str] = []
     tissues: list[str] = []
@@ -51,7 +51,7 @@ class ProteinInteractsWithProtein(_BaseModel, ProteinInteractsWithProteinBase):
             },
             "$addToSet": {
                 "methods": {"$each": self.methods},
-                "assertedBy": {"$each": self.databases},
+                "dataSources": {"$each": self.dataSources},
                 "evidenceTypes": {"$each": self.evidenceTypes},
                 "developmentStages": {"$each": self.developmentStages},
                 "tissues": {"$each": self.tissues},

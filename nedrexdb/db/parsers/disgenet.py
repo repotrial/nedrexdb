@@ -48,7 +48,7 @@ class DisGeNetRow:
 
         gawds = [
             GeneAssociatedWithDisorder(
-                sourceDomainId=sourceDomainId, targetDomainId=disorder, score=score, assertedBy=asserted_by
+                sourceDomainId=sourceDomainId, targetDomainId=disorder, score=score, dataSources=asserted_by
             )
             for disorder in disorders
         ]

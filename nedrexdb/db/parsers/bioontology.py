@@ -28,7 +28,10 @@ def parse():
                 meddra_items[primary_id].domainIds.append(f"umls.{cui['cui']}")
             else:
                 meddra_items[primary_id] = SideEffect(
-                    primaryDomainId=primary_id, domainIds=[primary_id, f"umls.{cui['cui']}"], displayName=meddra["name"]
+                    primaryDomainId=primary_id,
+                    domainIds=[primary_id, f"umls.{cui['cui']}"],
+                    displayName=meddra["name"],
+                    dataSources=["bioontology.org"],
                 )
 
     updates = (se.generate_update() for se in meddra_items.values())
@@ -45,7 +48,7 @@ def parse():
 
             hpo_mappings = [hpo for hpo in meddra["hpo_mappings"] if hpo in nedrex_phenotypes]
             se_pheno_relations += [
-                SideEffectSameAsPhenotype(sourceDomainId=meddra_id, targetDomainId=hpo, assertedBy=["bioontology.org"])
+                SideEffectSameAsPhenotype(sourceDomainId=meddra_id, targetDomainId=hpo, dataSources=["bioontology.org"])
                 for hpo in hpo_mappings
             ]
 

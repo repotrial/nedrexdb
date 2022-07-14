@@ -24,7 +24,7 @@ class GeneAssociatedWithDisorder(_BaseModel, GeneAssociatedWithDisorderBase):
 
     sourceDomainId: _StrictStr = ""
     targetDomainId: _StrictStr = ""
-    assertedBy: list[str] = []
+    dataSources: list[str] = []
     omimMappingCode: _Optional[int] = None
     omimFlags: list[str] = []
     score: _Optional[float] = None
@@ -39,7 +39,7 @@ class GeneAssociatedWithDisorder(_BaseModel, GeneAssociatedWithDisorderBase):
         update = {
             "$setOnInsert": {"created": tnow},
             "$set": {"updated": tnow, "type": self.edge_type},
-            "$addToSet": {"assertedBy": {"$each": self.assertedBy}, "omimFlags": {"$each": self.omimFlags}},
+            "$addToSet": {"dataSources": {"$each": self.dataSources}, "omimFlags": {"$each": self.omimFlags}},
         }
 
         if self.score:

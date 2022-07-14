@@ -24,8 +24,7 @@ class DrugHasTarget(_BaseModel, DrugHastargetBase):
     sourceDomainId: _StrictStr = ""
     targetDomainId: _StrictStr = ""
     actions: list[str] = []
-    # TODO: Decide semantics for this field in NeDRexDB.
-    databases: list[str] = []
+    dataSources: list[str] = []
     # TODO: Decide whether to keep this field in NeDRexDB.
     tags: list[str] = []
 
@@ -40,7 +39,7 @@ class DrugHasTarget(_BaseModel, DrugHastargetBase):
             "$setOnInsert": {"created": tnow},
             "$addToSet": {
                 "actions": {"$each": self.actions},
-                "databases": {"$each": self.databases},
+                "dataSources": {"$each": self.dataSources},
                 "tags": {"$each": self.tags},
             },
             "$set": {"updated": tnow, "type": self.edge_type},

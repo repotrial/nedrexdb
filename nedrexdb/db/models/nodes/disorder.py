@@ -33,6 +33,7 @@ class Disorder(_BaseModel, DisorderBase):
     icd10: _List[str] = _Field(default_factory=list)
 
     description: _StrictStr = ""
+    dataSources: list[str] = _Field(default_factory=list)
 
     def generate_update(self):
         tnow = _datetime.datetime.utcnow()
@@ -43,6 +44,7 @@ class Disorder(_BaseModel, DisorderBase):
                 "domainIds": {"$each": self.domainIds},
                 "synonyms": {"$each": self.synonyms},
                 "icd10": {"$each": self.icd10},
+                "dataSources": {"$each": self.dataSources},
             },
             "$set": {
                 "displayName": self.displayName,

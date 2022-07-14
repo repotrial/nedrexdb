@@ -52,7 +52,7 @@ class OMIMRow:
                     targetDomainId=disorder,
                     omimMappingCode=evidence,
                     omimFlags=flags,
-                    assertedBy=["omim"],
+                    dataSources=["omim"],
                 )
                 gawd_edges.append(gawd)
 

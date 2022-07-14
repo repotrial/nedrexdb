@@ -158,7 +158,7 @@ class DrugCentralContainer:
                 raise Exception("unexpected value for moa in drug_central")
 
             for drug, prot in _product(drugs, uniprot_accessions):
-                yield DrugHasTarget(sourceDomainId=drug, targetDomainId=prot, databases=["DrugCentral"], tags=tags)
+                yield DrugHasTarget(sourceDomainId=drug, targetDomainId=prot, dataSources=["drugcentral"], tags=tags)
 
     def iter_indications(self, dc_to_db_map, snomed_to_nedrex_map, nedrex_drugs):
         df = _pd.read_sql_query('select * from "omop_relationship"', con=self.engine)
@@ -180,7 +180,7 @@ class DrugCentralContainer:
                 dhi = DrugHasIndication(
                     sourceDomainId=drug,
                     targetDomainId=indication,
-                    assertedBy=["Drug Central"],
+                    dataSources=["drugcentral"],
                 )
                 yield dhi
 
@@ -204,7 +204,7 @@ class DrugCentralContainer:
                 dhc = DrugHasContraindication(
                     sourceDomainId=drug,
                     targetDomainId=contraindication,
-                    assertedBy=["Drug Central"],
+                    dataSources=["drugcentral"],
                 )
                 yield dhc
 

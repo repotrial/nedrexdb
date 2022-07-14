@@ -23,7 +23,7 @@ class DrugHasContraindication(_BaseModel, DrugHasContraindicationBase):
 
     sourceDomainId: _StrictStr = ""
     targetDomainId: _StrictStr = ""
-    assertedBy: list[str] = _Field(default_factory=list)
+    dataSources: list[str] = _Field(default_factory=list)
 
     def generate_update(self):
         tnow = _datetime.datetime.utcnow()
@@ -41,7 +41,7 @@ class DrugHasContraindication(_BaseModel, DrugHasContraindicationBase):
             "$setOnInsert": {
                 "created": tnow,
             },
-            "$addToSet": {"assertedBy": {"$each": self.assertedBy}},
+            "$addToSet": {"dataSources": {"$each": self.dataSources}},
         }
 
         return _UpdateOne(query, update, upsert=True)

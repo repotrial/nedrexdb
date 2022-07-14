@@ -100,6 +100,7 @@ class MondoRecord:
         d.displayName = self.get_display_name()
         d.synonyms = self.get_synonyms()
         d.icd10 = self.get_icd10_codes()
+        d.dataSources = ["mondo"]
 
         return d
 
@@ -130,6 +131,7 @@ def _parse_edges(edges):
         diad = DisorderIsSubtypeOfDisorder()
         diad.sourceDomainId = edge["sub"].replace(prefix, "mondo.")
         diad.targetDomainId = edge["obj"].replace(prefix, "mondo.")
+        diad.dataSources = ["mondo"]
 
         if diad.sourceDomainId not in mondo_nodes:
             continue

@@ -102,6 +102,8 @@ class UniProtRecord:
         p.taxid = self.get_taxid()
         p.sequence = self.get_sequence()
 
+        p.dataSources = ["uniprot"]
+
         return p
 
 
@@ -119,6 +121,7 @@ class IDMapRow:
     def parse(self):
         pebg = ProteinEncodedByGene()
         pebg.sourceDomainId = self.get_source_domain_id()
+        pebg.dataSources = ["uniprot"]
 
         genes = self.get_target_domain_ids()
         for gene in genes:

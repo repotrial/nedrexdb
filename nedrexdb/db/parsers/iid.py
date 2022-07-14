@@ -226,7 +226,7 @@ class IIDRow:
             memberOne=self.get_member_one(),
             memberTwo=self.get_member_two(),
             methods=self.get_methods(),
-            databases=self.get_databases(),
+            dataSources=self.get_databases(),
             evidenceTypes=self.get_evidence_types(),
             developmentStages=self.get_development_stages(),
             tissues=self.get_tissues(),

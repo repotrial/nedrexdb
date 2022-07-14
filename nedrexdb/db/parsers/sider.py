@@ -70,6 +70,7 @@ def parse():
                     targetDomainId=side_effect,
                     maximum_frequency=float(max_freq),
                     minimum_frequency=float(min_freq),
+                    dataSources=["sider"],
                 )
 
                 updates.append(dhse.generate_update())
