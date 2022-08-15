@@ -1,4 +1,5 @@
 import json as _json
+from functools import lru_cache
 
 from more_itertools import chunked as _chunked
 
@@ -8,8 +9,17 @@ from nedrexdb.db.models.nodes.disorder import Disorder
 from nedrexdb.db.models.edges.disorder_is_subtype_of_disorder import (
     DisorderIsSubtypeOfDisorder,
 )
+from nedrexdb.logger import logger
 
 get_file_location = _get_file_location_factory("mondo")
+get_repotrial_file_location = _get_file_location_factory("repotrial")
+
+
+@lru_cache(maxsize=1)
+def get_icd10_who_cm_overlap() -> set[str]:
+    with open(get_repotrial_file_location("icd10_overlap"), "r", encoding="utf-8") as f:
+        overlap = set(_json.load(f))
+    return overlap
 
 
 class MondoRecord:
@@ -69,7 +79,10 @@ class MondoRecord:
         except KeyError:
             return icd10_codes
 
-        icd10_codes += [xref["val"].replace("ICD10:", "") for xref in xrefs if xref["val"].startswith("ICD10:")]
+        icd10cm_codes = {xref["val"].replace("ICD10CM:", "") for xref in xrefs if xref["val"].startswith("ICD10CM:")}
+        icd10_codes = sorted(icd10cm_codes & get_icd10_who_cm_overlap())  # intersection
+        if icd10_codes:
+            logger.info(f"Found codes with new method: {icd10_codes}")
         return icd10_codes
 
     def get_synonyms(self) -> list[str]:
