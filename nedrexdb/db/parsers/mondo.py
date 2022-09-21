@@ -81,8 +81,6 @@ class MondoRecord:
 
         icd10cm_codes = {xref["val"].replace("ICD10CM:", "") for xref in xrefs if xref["val"].startswith("ICD10CM:")}
         icd10_codes = sorted(icd10cm_codes & get_icd10_who_cm_overlap())  # intersection
-        if icd10_codes:
-            logger.info(f"Found codes with new method: {icd10_codes}")
         return icd10_codes
 
     def get_synonyms(self) -> list[str]:
