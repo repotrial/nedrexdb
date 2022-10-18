@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 
+import time
+
 import click
 
 import nedrexdb
 from nedrexdb import config, downloaders
 from nedrexdb.control.docker import NeDRexDevInstance, NeDRexLiveInstance
-from nedrexdb.db import MongoInstance, mongo_to_neo, collection_stats
+from nedrexdb.db import MongoInstance, mongo_to_neo, collection_stats, update_db_version
 from nedrexdb.db.parsers import (
     biogrid,
     disgenet,
@@ -116,6 +118,8 @@ def update(conf, download):
 
     # Profile the collections
     collection_stats.profile_collections(MongoInstance.DB)
+    update_db_version.update_db_version(default_version="2.0.0")
+    time.sleep(60)
 
     # remove dev instance and set up live instance
     dev_instance.remove()
