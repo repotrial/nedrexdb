@@ -79,9 +79,11 @@ class DisGeNetParser:
         updates = (DisGeNetRow(row).parse(umls_nedrex_map) for row in reader)
         for chunk in _tqdm(_chunked(updates, 1_000), leave=False, desc="Parsing DisGeNET"):
             chunk = list(_chain(*chunk))
+            chunk = [gawd.generate_update() for gawd in chunk if gawd.sourceDomainId in genes]
+
             if not chunk:
                 continue
-            chunk = [gawd.generate_update() for gawd in chunk if gawd.sourceDomainId in genes]
+
             MongoInstance.DB[GeneAssociatedWithDisorder.collection_name].bulk_write(chunk)
 
         f.close()

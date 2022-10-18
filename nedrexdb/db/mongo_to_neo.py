@@ -1,3 +1,4 @@
+import os as _os
 import subprocess as _subprocess
 from collections.abc import MutableMapping as _MutableMapping
 from pathlib import Path as _Path
@@ -131,3 +132,9 @@ def mongo_to_neo(nedrex_instance, db):
         command += ["--relationships", f"/import/{edge}.csv"]
 
     _subprocess.call(command)
+
+    # clean up
+    for node in nodes:
+        _os.remove(f"{workdir}/{node}.csv")
+    for edge in edges:
+        _os.remove(f"{workdir}/{edge}.csv")
