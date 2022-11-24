@@ -23,8 +23,13 @@ def update(config, version):
 
     sources = list(config["sources"].keys())
     sources.remove("directory")
+    client = MongoClient(port=mongo_port)
+    db = client[db_name]
 
-    metadata = {"version": "0.0.0", "source_databases": {}}
+    metadata = db["metadata"].find_one()
+    metadata = metadata if metadata is not None else {"version": "0.0.0"}
+    if "source_databases" not in metadata:
+        metadata["source_databases"] = {}
 
     for source in sources:
         dir = f"{download_directory}/{source}"
@@ -42,8 +47,7 @@ def update(config, version):
 
         metadata["source_databases"][source] = {"version": None, "date": f"{earliest_date.date()}"}
 
-    client = MongoClient(port=mongo_port)
-    db = client[db_name]
+
     db["metadata"].replace_one({}, metadata, upsert=True)
 
 

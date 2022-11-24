@@ -114,8 +114,7 @@ def update_db_version(default_version="2.0.0"):
     logger.debug("Generating metadata")
     metadata = generate_update_document(next_version, download_directory)
 
-    logger.debug("Creating development client")
     dev_client = MongoClient(port=mongo_dev_port)
     dev_db = dev_client[mongo_dbname]
-    logger.debug("Setting metadata in the development")
     dev_db["metadata"].replace_one({}, metadata, upsert=True)
+
