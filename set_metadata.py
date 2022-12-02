@@ -23,10 +23,13 @@ def update(config, version):
 
     sources = list(config["sources"].keys())
     sources.remove("directory")
-    client = MongoClient(port=mongo_port)
-    db = client[db_name]
+    try:
+        client = MongoClient(port=mongo_port)
+        db = client[db_name]
 
-    metadata = db["metadata"].find_one()
+        metadata = db["metadata"].find_one()
+    except:
+        metadata = None
     metadata = metadata if metadata is not None else {"version": "0.0.0"}
     if "source_databases" not in metadata:
         metadata["source_databases"] = {}
